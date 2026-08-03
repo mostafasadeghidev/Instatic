@@ -3,7 +3,7 @@ import { createSqliteClient } from '../../../db/sqlite'
 import { sqliteMigrations } from '../../../db/migrations-sqlite'
 import { runMigrations } from '../../../db/runMigrations'
 import type { DbClient } from '../../../db/client'
-import { createDataTable, getDataTable, listDataTables } from '../tables'
+import { createDataTable, getDataTable, getDataTableBySlug, listDataTables } from '../tables'
 
 async function freshDb(): Promise<DbClient> {
   const db = createSqliteClient(':memory:')
@@ -55,5 +55,50 @@ describe('data_tables.system column', () => {
     const tables = await listDataTables(db)
     const systemSlugs = tables.filter((t) => t.system).map((t) => t.slug).sort()
     expect(systemSlugs).toEqual(['components', 'layouts', 'pages', 'posts'])
+  })
+})
+
+describe('data_tables.created_by_plugin_id column', () => {
+  let db: DbClient
+
+  beforeEach(async () => {
+    db = await freshDb()
+  })
+
+  it('defaults to null for user-created tables (and the seeded system tables)', async () => {
+    const table = await createDataTable(db, {
+      name: 'Products',
+      slug: 'products',
+      kind: 'data',
+      singularLabel: 'Product',
+      pluralLabel: 'Products',
+    })
+    expect(table.createdByPluginId).toBeNull()
+
+    for (const id of ['pages', 'posts', 'components', 'layouts']) {
+      const system = await getDataTable(db, id)
+      expect(system?.createdByPluginId).toBeNull()
+    }
+  })
+
+  it('persists the creating plugin id and surfaces it on every read path', async () => {
+    const created = await createDataTable(db, {
+      name: 'Imported Products',
+      slug: 'imported-products',
+      kind: 'data',
+      singularLabel: 'Imported product',
+      pluralLabel: 'Imported products',
+      createdByPluginId: 'acme.importer',
+    })
+    expect(created.createdByPluginId).toBe('acme.importer')
+
+    const byId = await getDataTable(db, created.id)
+    expect(byId?.createdByPluginId).toBe('acme.importer')
+
+    const bySlug = await getDataTableBySlug(db, 'imported-products')
+    expect(bySlug?.createdByPluginId).toBe('acme.importer')
+
+    const listed = await listDataTables(db)
+    expect(listed.find((t) => t.slug === 'imported-products')?.createdByPluginId).toBe('acme.importer')
   })
 })

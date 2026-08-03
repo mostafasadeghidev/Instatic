@@ -32,6 +32,27 @@ A self-hosted CMS where the visual editor, content engine, and publisher all liv
 
 <br>
 
+> [!NOTE]
+> **This is `stack/all-fixes` on the [mostafasadeghidev/Instatic](https://github.com/mostafasadeghidev/Instatic) fork** — upstream [CoreBunch/Instatic](https://github.com/CoreBunch/Instatic) `main` plus five fixes that have been submitted upstream and are awaiting review:
+>
+> | Upstream PR | Fix |
+> |---|---|
+> | [#333](https://github.com/CoreBunch/Instatic/pull/333) | `definePlugin` no longer drops `contentAccess` from the built manifest |
+> | [#334](https://github.com/CoreBunch/Instatic/pull/334) | Media bindings resolve asset ids to served URLs; outlets can bind any rich field |
+> | [#335](https://github.com/CoreBunch/Instatic/pull/335) | `@own-created` contentAccess marker — plugins can use tables they created at runtime |
+> | [#336](https://github.com/CoreBunch/Instatic/pull/336) | Install consent dialog renders the per-table `contentAccess` allowlist |
+> | [#337](https://github.com/CoreBunch/Instatic/pull/337) | `{currentEntry.*}` tokens interpolate in published meta title / description |
+>
+> The fork's `main` tracks upstream untouched; each fix also lives on its own branch. To deploy **with** the fixes:
+>
+> ```sh
+> git clone https://github.com/mostafasadeghidev/Instatic.git
+> cd Instatic
+> docker compose -f compose.prod.yml -f compose.sqlite.yml -f compose.build.yml up -d --build
+> ```
+>
+> (`stack/all-fixes` is the fork's default branch, so a plain `clone` gets it.) Once the PRs merge upstream, prefer upstream releases over this branch.
+
 A modern website usually means assembling a stack: a headless CMS, a framework, a host, a form service, an analytics vendor, an image CDN — each with its own bill, dashboard, and 2 a.m. outage. Instatic is the opposite bet. One Bun server holds the whole thing — the canvas editor, the content engine, media, auth, forms, plugins, and the publisher — and you run it wherever you like, backed by SQLite or Postgres.
 
 What comes out the other end is the part most builders quietly compromise on: plain semantic HTML and compact CSS, with none of the editor's machinery left behind in the page. No framework runtime, no builder attributes, no div soup. The site loads like a static file because, most of the time, it is one.

@@ -33,7 +33,7 @@ A self-hosted CMS where the visual editor, content engine, and publisher all liv
 <br>
 
 > [!NOTE]
-> **This is `stack/all-fixes` on the [mostafasadeghidev/Instatic](https://github.com/mostafasadeghidev/Instatic) fork** — upstream [CoreBunch/Instatic](https://github.com/CoreBunch/Instatic) `main` plus seven changes that have been submitted upstream and are awaiting review:
+> **This is `stack/all-fixes` on the [mostafasadeghidev/Instatic](https://github.com/mostafasadeghidev/Instatic) fork** — upstream [CoreBunch/Instatic](https://github.com/CoreBunch/Instatic) `main` plus eight changes that have been submitted upstream and are awaiting review:
 >
 > | Upstream PR | Change |
 > |---|---|
@@ -44,6 +44,7 @@ A self-hosted CMS where the visual editor, content engine, and publisher all liv
 > | [#337](https://github.com/CoreBunch/Instatic/pull/337) | `{currentEntry.*}` tokens interpolate in published meta title / description |
 > | [#348](https://github.com/CoreBunch/Instatic/pull/348) | Loops can filter and sort by a row's own cell, not just by table columns |
 > | [#349](https://github.com/CoreBunch/Instatic/pull/349) | Site Import reports asset references the archive doesn't contain |
+> | [#350](https://github.com/CoreBunch/Instatic/pull/350) | A loop can carry custom HTML attributes, like every other structural module |
 >
 > The fork's `main` tracks upstream untouched; each fix also lives on its own branch. To deploy **with** the fixes:
 >

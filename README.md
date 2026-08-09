@@ -33,7 +33,7 @@ A self-hosted CMS where the visual editor, content engine, and publisher all liv
 <br>
 
 > [!NOTE]
-> **This is `stack/all-fixes` on the [mostafasadeghidev/Instatic](https://github.com/mostafasadeghidev/Instatic) fork** — upstream [CoreBunch/Instatic](https://github.com/CoreBunch/Instatic) `main` plus thirteen changes that have been submitted upstream and are awaiting review:
+> **This is `stack/all-fixes` on the [mostafasadeghidev/Instatic](https://github.com/mostafasadeghidev/Instatic) fork** — upstream [CoreBunch/Instatic](https://github.com/CoreBunch/Instatic) `main` plus twelve changes that have been submitted upstream and are awaiting review:
 >
 > | Upstream PR | Change |
 > |---|---|
@@ -48,7 +48,6 @@ A self-hosted CMS where the visual editor, content engine, and publisher all liv
 > | [#353](https://github.com/CoreBunch/Instatic/pull/353) | `{currentEntry.*}` tokens interpolate inside `htmlAttributes`, not just string props |
 > | [#354](https://github.com/CoreBunch/Instatic/pull/354) | Published pages can load cross-origin video/audio (`media-src` matches `img-src`) |
 > | [#357](https://github.com/CoreBunch/Instatic/pull/357) | A node can be shown only on the rows where a field is filled in (`visibleWhen`) |
-> | [#358](https://github.com/CoreBunch/Instatic/pull/358) | Publish failures say what went wrong instead of "Internal server error" |
 > | [#359](https://github.com/CoreBunch/Instatic/pull/359) | A plugin upgrade no longer 404s the assets every published page links |
 >
 > The fork's `main` tracks upstream untouched; each fix also lives on its own branch. To deploy **with** the fixes:

@@ -23,7 +23,7 @@ import { requireCapability, requireStepUp } from '../../auth/authz'
 import { createAuditEvent } from '../../repositories/audit'
 import { getDraftPublishStatus } from '../../repositories/publish'
 import { publishDraftSite } from '../../publish/publishSite'
-import { PublishRuntimeBuildError, publishBuildErrorMessage } from '../../publish/publishBuildError'
+import { RuntimeScriptBuildError } from '../../publish/runtime/buildError'
 import { jsonResponse, methodNotAllowed } from '../../http'
 import type { CmsHandlerOptions } from './shared'
 import { requestAuditContext } from './shared'
@@ -44,18 +44,14 @@ export async function handlePublishRoutes(
 
     // publishDraftSite flushes the collab relay itself (see publishFlush.ts),
     // so the snapshot includes edits still inside the debounce window.
-    let result
+    let result: Awaited<ReturnType<typeof publishDraftSite>>
     try {
       result = await publishDraftSite(db, user.id, options.uploadsDir)
     } catch (err) {
-      // A script that imports an undeclared package is the author's to fix,
-      // not a server fault — 400, with the reason. Everything else keeps
-      // falling through to the router's generic 500, which is right: an
-      // unexpected message can carry SQL fragments or absolute paths, and
-      // only these diagnostics are known to be author-facing.
-      if (!(err instanceof PublishRuntimeBuildError)) throw err
-      console.error('[publish]', err)
-      return jsonResponse({ error: publishBuildErrorMessage(err) }, { status: 400 })
+      if (err instanceof RuntimeScriptBuildError) {
+        return jsonResponse({ error: err.message }, { status: 422 })
+      }
+      throw err
     }
     await createAuditEvent(db, {
       actorUserId: user.id,

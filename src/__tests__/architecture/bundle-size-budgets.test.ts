@@ -157,10 +157,13 @@ const BUDGETS: ChunkBudget[] = [
 
   {
     prefix: 'ContentPage-',
-    maxBytes: 90_000,
+    maxBytes: 92_000,
     rationale:
-      'content workspace route after Tiptap/LiveCanvas lazy split. Current ' +
-      '~81 KB raw / ~27 KB gzipped.',
+      'content workspace route after Tiptap/LiveCanvas lazy split. Raised ' +
+      'from 90 KB on this fork only: the stack layers twelve upstream-pending ' +
+      'features whose shared core/admin imports land in this chunk, and each ' +
+      'one is inside 90 KB on its own branch. Current ~89 KB raw. Drop back ' +
+      'to 90 KB as the PRs merge upstream and the stack empties.',
   },
 
   {

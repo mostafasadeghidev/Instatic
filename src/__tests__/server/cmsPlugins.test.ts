@@ -1390,13 +1390,22 @@ describe('CMS plugin handlers', () => {
       // installed_at preserved across the upgrade.
       expect(db.plugins[0].installed_at).toBe(installedAtBefore)
 
-      // Old version's asset dir was deleted; new version's is on disk.
+      // The new version's assets are on disk...
       await expect(readFile(
         join(uploadsDir, 'plugins/acme.upgrade/1.1.0/server/index.js'),
         'utf-8',
       )).resolves.toContain('migrate')
+
+      // ...and the OLD version's survive the upgrade, deliberately.
+      //
+      // Published HTML links plugin frontend assets by version, and only a
+      // publish rewrites those links. Deleting here — which this test used to
+      // assert — 404'd every page already baked to disk; on a real site an
+      // upgrade took out the whole site's JavaScript at once, silently. The
+      // directory is retired by the next publish instead, which is the moment
+      // those URLs stop pointing at it (`sweepStalePluginVersionAssets`).
       const { existsSync } = await import('node:fs')
-      expect(existsSync(join(uploadsDir, 'plugins/acme.upgrade/1.0.0'))).toBe(false)
+      expect(existsSync(join(uploadsDir, 'plugins/acme.upgrade/1.0.0'))).toBe(true)
     } finally {
       hookBus.unregisterPlugin('test')
       await rm(uploadsDir, { recursive: true, force: true })

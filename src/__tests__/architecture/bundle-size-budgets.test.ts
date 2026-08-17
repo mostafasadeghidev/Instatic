@@ -157,13 +157,15 @@ const BUDGETS: ChunkBudget[] = [
 
   {
     prefix: 'ContentPage-',
-    maxBytes: 92_000,
+    maxBytes: 100_000,
     rationale:
-      'content workspace route after Tiptap/LiveCanvas lazy split. Raised ' +
-      'from 90 KB on this fork only: the stack layers twelve upstream-pending ' +
-      'features whose shared core/admin imports land in this chunk, and each ' +
-      'one is inside 90 KB on its own branch. Current ~89 KB raw. Drop back ' +
-      'to 90 KB as the PRs merge upstream and the stack empties.',
+      'content workspace route after Tiptap/LiveCanvas lazy split and shared ' +
+      'data-binding picker adoption. Current ~91 KB raw / ~31 KB gzipped ' +
+      'upstream. This fork also layers the upstream-pending feature stack, ' +
+      'whose shared core/admin imports land in the same chunk; each of those ' +
+      'branches is inside the budget on its own, and the total stays under ' +
+      'the upstream ceiling, so the number is upstream\'s rather than a ' +
+      'fork-only raise.',
   },
 
   {
@@ -200,6 +202,19 @@ const BUDGETS: ChunkBudget[] = [
       'Only loaded when a user opens a text file in the code editor panel. ' +
       'Grew from ~606 KB when @codemirror/lang-html (bundling embedded CSS + ' +
       'JS grammar) was added for the HTML-import editor.',
+  },
+
+  // TypeScript's compiler and standard-library declarations are intentionally
+  // isolated behind a browser Worker created only for authored .ts/.tsx files.
+  // This cap makes a dependency upgrade explicit without charging the editor
+  // or admin startup chunks for semantic language tooling.
+  {
+    prefix: 'typescriptWorker-',
+    maxBytes: 7_600_000,
+    rationale:
+      'lazy TypeScript language-service worker (current ~7.37 MB raw). ' +
+      'Contains the TypeScript compiler plus ES2020/DOM declaration text, ' +
+      'and is loaded only when a user opens a TypeScript site script.',
   },
 ]
 

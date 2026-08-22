@@ -4,7 +4,20 @@ All notable changes to Instatic will be documented here.
 
 This project is pre-1.0. Breaking changes may appear in minor or patch releases until a stable release line exists.
 
-## Unreleased
+## 0.0.17
+
+### AI and integrations
+
+- Fixed adding the Instatic MCP connector on Postgres installations. The dynamic client registration response returned `client_id_issued_at` as a quoted string, because Postgres declares the column `bigint` and returns it as a string to protect precision, so clients that validate the response against RFC 7591 rejected the connector with `expected number, received string`. SQLite installations were unaffected.
+
+### Editor, import, and publishing
+
+- Added a condition to data-row loops so a list can show a subset of a table rather than always its newest rows — pick one of the table's own fields and require it to be checked, unchecked, equal to a value, or to have any value at all. A relation field offers its rows by name instead of asking for an id. The condition applies on the canvas, on published pages, and in the "load more" endpoint, and the item count follows it so pagination never advertises rows the page drops.
+- Added the table's own fields to a data-row loop's "Order by" list, so a list can follow a real date, title, or rank stored in the row instead of only the row's built-in columns. Values compare as text, which sorts ISO dates chronologically.
+
+### Content and publishing
+
+- Fixed the SEO title and SEO description fields on a post so they reach the published page. Both were editable in the Content settings panel but never emitted anything: an entry's `<title>` always showed its plain title, and no description tag was written at all. An authored value now drives `<title>` / `<meta name="description">` and outranks the site-wide Meta Title and Meta Description, on the published page and in the Content editor's Live preview alike. The on-page `{page.title}` and `{currentEntry.title}` bindings keep rendering the entry's real title.
 
 ## 0.0.16 - 2026-08-11
 

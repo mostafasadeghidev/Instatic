@@ -10,14 +10,14 @@ The published output has **no framework runtime**, **no client-side hydration of
 
 - Entry point: `publishPage(page, site, registry, options?)` in `src/core/publisher/render.ts`. Returns `{ filename, html, jsModuleIds }`, where `html` is the full document string and `jsModuleIds` are per-page module-JS candidates for the server injection pass.
 - Recursion: `renderNode(nodeId, config, acc)` in `renderNode.ts`. Bottom-up walk. Two specialized renderers hook in for `base.visual-component-ref` and `base.loop`.
-- Hidden nodes are pruned at the top of `renderNode`, before unknown-module comments, dynamic holes, specialized renderers, standard rendering, or CSS collection — both the author's own `node.hidden` switch and `node.visibleWhen`, the per-render condition evaluated against the row being rendered.
+- Hidden nodes (`node.hidden`) are pruned at the top of `renderNode`, before unknown-module comments, dynamic holes, specialized renderers, standard rendering, or CSS collection.
 - Per-node flow: render children → resolve effective + dynamic props → `escapeProps` → call `module.render(props, renderedChildren)` → collect deduped CSS → inject author class names.
 - CSS is deduped by `moduleId` via `CssCollector` (~60–80% size reduction on typical pages).
 - Module `render()` is a **pure function**: no DOM, no React, no side effects (Constraint #179).
 - Every node's props pass through `escapeProps` before `render()` (Constraint #211).
 - Server-side wrappers (`server/publish/publicRouter.ts` → `publicRenderer.ts` → `publishedHtmlPipeline.ts`) call `publishPage`, run plugin filters, and return the HTML in the visitor response.
 - Output is routed through a three-layer publishing pipeline: **Layer A** bakes pages to `uploads/published/current/<route>.html` at publish time (complete documents for fully-static pages, static shells with holes for dynamic pages, atomic two-slot symlink swap). **Layer B** memoises dynamic page renders in an in-memory LRU keyed by `(urlPath, canonicalQuery)` with per-entry version tracking; `canonicalQuery` is the output of `canonicalRenderQuery()` (in `loopPrefetch.ts`), which keeps only `loop_<nodeId>_page` pagination params — arbitrary junk params collapse to `''` so they never mint new cache slots; `bumpPublishVersion()` evicts lazily and version capture at render start discards results from mid-flight publishes. **Layer C** emits `<instatic-hole>` placeholders for nodes auto-classified as request-dependent; a ~1.1 KB `IntersectionObserver` runtime lazy-loads each fragment via `/_instatic/hole/<nodeId>?v=<publishVersion>&u=<page-url>`.
-- Auto-classification lives in `src/core/publisher/dynamicDetection.ts:findDynamicNodeIds` — one walker, five detection rules plus a loop body promotion step (Rule 3.5), used by `render.ts`'s empty-set static check (Layer A) and `renderNode`'s placeholder emission (Layer C). Authors don't toggle anything.
+- Auto-classification lives in `src/core/publisher/dynamicDetection.ts:findDynamicNodeIds` — one walker, four detection rules plus a loop body promotion step (Rule 3.5), used by `render.ts`'s empty-set static check (Layer A) and `renderNode`'s placeholder emission (Layer C). Authors don't toggle anything.
 
 ---
 
@@ -40,7 +40,7 @@ src/core/publisher/
 ├── userStylesheets.ts              — site-level user stylesheets
 ├── siteCssBundle.ts                — hash-named bundle composition (reset + framework + style)
 ├── sizesResolver.ts                — `<img sizes>` derived from the layout: linear width model (caps, fractions, grid tracks) per viewport tier
-├── dynamicDetection.ts             — Single walker for the 5 auto-detection rules; powers Layers A and C
+├── dynamicDetection.ts             — Single walker for the 4 auto-detection rules; powers Layers A and C
 └── utils.ts                        — escapeHtml, isSafeUrl, safeUrl (re-exported from @core/html-sanitize); sanitiseCssValue (from @core/css-sanitize)
 
 server/publish/
@@ -180,12 +180,9 @@ See [docs/features/loops.md](loops.md) for sources, filters, and registration.
 | 1    | Module flagged `dynamic: true` in the registry | Node is a hole |
 | 2    | Node has a `dynamicBindings` entry whose source is request-dependent (`route.query.*`) | Node is a hole |
 | 2b   | A string prop contains a `{source.field}` token whose source is request-dependent | Node is a hole |
-| 2c   | Node has a `visibleWhen` condition reading a request-dependent source | Node is a hole |
 | 3    | `moduleId === 'base.loop'` AND the loop source declares `requestDependent: true` or `perVisitor: true` | Loop is a hole |
 | 3.5  | `moduleId === 'base.loop'` AND the loop source is static, but its body (transitively, including nested loops and referenced VC trees) contains any request-dependent node | Loop is promoted to a single hole; all body descendants are suppressed |
 | 4    | `moduleId === 'base.visual-component-ref'` whose VC definition tree contains any dynamic node | The outer VC ref node is a hole; inner VC node ids are never promoted |
-
-**Rule 2c** is a stronger dependency than Rule 2 and worth separating for that reason. A request-dependent prop binding changes what a node *says*; a request-dependent visibility condition changes whether the node is *there at all*. Baking it would freeze one visitor's answer into the static artefact for everyone.
 
 **Rule 3.5** prevents a broken publish artifact: if a static loop rendered its body's dynamic child as a per-node hole, the loop would emit N `<instatic-hole id="X">` elements with the same id — one per iteration — all resolving to the same context-less fragment. By promoting the loop itself to a single hole, the renderer emits one placeholder and the hole endpoint re-runs the entire loop at request time with full per-item context.
 
@@ -224,16 +221,8 @@ plus global preflight.
 Media-library background images are optimized in the same publish pass as
 `<img srcset>`. `mediaPrefetch.ts` collects `/uploads/...` URLs from
 image/media module props, node `inlineStyles.backgroundImage`, and StyleRule
-`backgroundImage` values (including breakpoint/context overrides), plus
-media references carried by the ENTRY data itself: multi-media array members,
-scalar `/uploads/...` values, and the bare asset ids stored in fields that a
-`format: 'media'` binding references (custom media cells store the id — the
-binding, not the value's shape, marks the field as media). The resulting map
-is keyed by stored reference (id or path) AND by each asset's materialized
-`publicPath`, and is handed both to the render walk (prop enrichment) and to
-the template render context (`ctx.media`) so `format: 'media'` bindings can
-translate id → served URL. It then batch-fetches the media rows in one
-id-or-path query. During CSS emission,
+`backgroundImage` values (including breakpoint/context overrides), then
+batch-fetches their media rows. During CSS emission,
 `responsiveBackground.ts` rewrites each matched `url('/uploads/original.png')`
 to two `background-image` declarations: an optimized variant URL fallback and
 an `image-set(...)` ladder built only from `media_assets.variants_json`. The
@@ -338,14 +327,30 @@ The publisher emits `<head>` in this order:
 
 1. `<meta charset="utf-8">`
 2. `<meta name="viewport" content="width=device-width, initial-scale=1">`
-3. `<title>` — `site.settings.metaTitle` → `page.title` → `site.name`, token-interpolated against the render context before escaping, so `{currentEntry.*}` resolves per-entry on entry routes (e.g. `{currentEntry.name} | Acme`) and `{page.*}` / `{site.*}` / `{route.*}` work everywhere
-4. `<meta name="description">` if `site.settings.metaDescription` is set — same token interpolation
+3. `<title>` — the entry's `seoTitle` (post-type entries only) → `settings.metaTitle` → `page.title` → site name, then token-interpolated against the render context before escaping, so `{currentEntry.*}` resolves per-entry on entry routes (e.g. `{currentEntry.name} | Acme`) and `{page.*}` / `{site.*}` / `{route.*}` work everywhere
+4. `<meta name="description">` — the entry's `seoDescription` (post-type entries only) → `settings.metaDescription`; omitted when neither is set, and token-interpolated the same way
 5. `<link rel="icon">` if a favicon is configured
 6. `<script type="importmap">` mapping bare specifiers (e.g. `three`) to `/_instatic/runtime/cache/<hash>/...` URLs
 7. Runtime asset `<script>` tags (`scriptTagsForRuntimeAssets`)
 8. `<link rel="stylesheet" href="/_instatic/css/<bundle>-<hash>.css">` per bundle
 9. **`head` placement** plugin-injected tags (after the publisher's own head, before custom user head content)
 10. `<meta http-equiv="Content-Security-Policy" content="...">` — assembled based on what's actually in the page
+
+### `documentMeta` — per-render `<head>` overrides
+
+Rows 3 and 4 above take their most specific value from `PublishPageOptions.documentMeta`, a `{ title?, description? }` the caller supplies for this render only. A post-type entry's authored `seoTitle` / `seoDescription` are row cells, not fields of the composed template `Page`, so both entry render paths read them with `readEntrySeoOverride(cells)` (`src/core/data/cells.ts`) and pass them here:
+
+| Path | File |
+|---|---|
+| Publish / public route | `renderPublishedDataRowTemplate` in `server/publish/publicRenderer.ts` |
+| Content editor Live mode | `handleRowPreview` in `server/handlers/cms/data/preview.ts` |
+
+Two invariants:
+
+- **Never write the SEO override onto `page.title`.** `publishPage` hands `page` to `buildPageFrame`, so `page.title` is also the `{page.title}` binding — an SEO value assigned there renders inside the page body. `page.title` stays the entry's own `title` cell; the override reaches `<head>` and nothing else.
+- **A blank field is not an override.** `readEntrySeoOverride` omits an empty or whitespace-only cell, so it falls through to the site-level `metaTitle` / `metaDescription` exactly as an absent one does.
+
+Both call sites read through the one helper so publish and Live preview can't drift.
 
 Installed fonts are emitted through the CSS bundle, not external `<link>` tags. The font CSS includes self-hosted `@font-face` rules for `site.settings.fonts.items` plus `:root` declarations for editable tokens such as `--font-primary`. A page rule can therefore keep `font-family: var(--font-primary)` while the token assignment changes site-wide.
 
@@ -381,7 +386,7 @@ Because `serializeCsp` sorts, the same plugins + adapters always emit a **byte-i
 | `server/publish/renderCache.ts`                 | In-memory LRU keyed by `(urlPath, canonicalQuery)`, entries versioned. `getOrRender` (single-flight). Reads the version from `publishState`; version captured at render start — a publish landing mid-render discards the result rather than caching stale HTML. Layer B. |
 | `server/publish/publishState.ts`                | Publish-time process state: `publishVersion` (`bumpPublishVersion`/`getPublishVersion`), `withPublishLock` (ISS-038 publish serializer), and `createVersionedSingleFlight` — the generalized version-keyed single-flight memo the hole endpoint reuses. Repositories import the version + lock from here (not from the cache). |
 | `server/publish/holeRuntime.ts`                 | Exports `runInstaticHoleRuntime` (the TypeScript source of the Layer C runtime) and `HOLE_RUNTIME_JS` (IIFE-serialized string, ~1.1 KB, served to browsers). Tests call `runInstaticHoleRuntime()` directly to avoid dynamic eval. |
-| `server/publish/publicRenderer.ts`              | `renderPublishedSnapshot`, `renderPublishedDataRowTemplate` — thin wrappers (resolve + compose the template chain, seed the context) over one shared `renderMergedTemplate` (CSS bundle + loop/media prefetch + `publishPage` + publish-version stamping). |
+| `server/publish/publicRenderer.ts`              | `renderPublishedSnapshot`, `renderPublishedDataRowTemplate` — thin wrappers (resolve + compose the template chain, seed the context) over one shared `renderMergedTemplate` (CSS bundle + loop/media prefetch + `publishPage` + publish-version stamping). The entry path also passes the row's `readEntrySeoOverride(...)` through as `documentMeta`. |
 | `server/publish/publishedHtmlPipeline.ts`       | Post-process: DOMPurify the final HTML, run plugin `publish.html` filter, splice in declarative tags from plugin manifests, inject runtime assets. Runs at publish time only — never per-request. |
 | `server/publish/siteCssBundle.ts`               | Hash the four CSS strings, write `uploads/css/...` files. The framework bundle's module-CSS half comes from the shared walk in `siteModuleAssets.ts`. |
 | `server/publish/siteModuleAssets.ts`            | `collectSiteModuleAssets` — the one full-site render walk whose accumulators feed BOTH the framework CSS bundle (`cssMap`) and the published module-JS map (`jsMap`). |
@@ -561,6 +566,7 @@ This is rare and requires architectural review — most "new behavior" fits with
 | Hand-writing `<picture>` / `<img srcset>` in a module         | Set `props.<key>` to a media URL; `mediaPresentation.ts` materializes the markup. |
 | Adding `@import url(...)` to module CSS                       | The final document passes through DOMPurify in `publishedHtmlPipeline.ts`, which strips dangerous CSS constructs. Add it to the site's user stylesheets instead (where it is intentional). |
 | Editing the CSP meta tag string manually                      | Edit the CSP source list — the tag is derived.             |
+| Assigning an entry's `seoTitle` to `page.title` to reach `<title>` | Pass it as `documentMeta.title`. `page.title` is also the `{page.title}` binding, so an override written there renders in the page body. |
 
 ---
 

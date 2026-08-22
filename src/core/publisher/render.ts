@@ -84,6 +84,14 @@ interface PublishPageOptions {
    */
   mediaAssets?: Map<string, RenderResolvedMedia>
   /**
+   * `<title>` / `<meta name="description">` for THIS render only — a
+   * post-type entry's authored SEO fields. They belong to the row, not to the
+   * composed template `Page`, and they must not be written onto `page.title`:
+   * that value also feeds the `{page.title}` binding and has to keep rendering
+   * the entry's real title. The entry render paths pass them here instead.
+   */
+  documentMeta?: DocumentMetaOverride
+  /**
    * Optional URL hint for the loop runtime — used to construct
    * "Load more" endpoint URLs in `data-instatic-loop-endpoint` attributes
    * when the page contains an infinite-mode loop. Defaults to
@@ -148,6 +156,15 @@ interface PublishPageOptions {
    * HTML representation the agent targets nodes through.
    */
   annotateNodeIds?: boolean
+}
+
+/**
+ * `<head>` values supplied by the caller for this render only. An omitted
+ * (or blank) key falls through to the site settings.
+ */
+export interface DocumentMetaOverride {
+  title?: string
+  description?: string
 }
 
 /**
@@ -332,10 +349,12 @@ function buildDocumentMetaTags(
   site: SiteDocument,
   page: Page,
   context: TemplateRenderDataContext,
+  override: DocumentMetaOverride = {},
 ): DocumentMetaTags {
   const { settings } = site
-  const metaDesc = settings.metaDescription
-    ? `\n  <meta name="description" content="${escapeHtml(interpolateTokens(settings.metaDescription, context))}">`
+  const description = override.description || settings.metaDescription
+  const metaDesc = description
+    ? `\n  <meta name="description" content="${escapeHtml(interpolateTokens(description, context))}">`
     : ''
   const favicon =
     settings.faviconUrl && isSafeUrl(settings.faviconUrl)
@@ -343,7 +362,7 @@ function buildDocumentMetaTags(
       : ''
   return {
     pageTitle: escapeHtml(
-      interpolateTokens(settings.metaTitle ?? page.title ?? site.name, context),
+      interpolateTokens(override.title || (settings.metaTitle ?? page.title ?? site.name), context),
     ),
     metaDesc,
     favicon,
@@ -581,7 +600,7 @@ export function publishPage(
     acc.cssMap,
   )
 
-  const meta = buildDocumentMetaTags(site, page, templateContext)
+  const meta = buildDocumentMetaTags(site, page, templateContext, options.documentMeta)
   const runtime = buildRuntimeAssetsBlock(options, acc)
   const csp = buildContentSecurityPolicy(runtime.anyScriptTag, runtime.importmap, acc.cspSources)
 

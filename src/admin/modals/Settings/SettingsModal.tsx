@@ -230,11 +230,22 @@ export function SettingsModal() {
 
             <div className={s.railSpring} />
 
-            <div className={s.shortcutFooter} aria-label="Settings keyboard shortcuts">
-              <div className={s.shortcutHint}>
+            {/* The keycap reads as a button — it depresses on :active like every
+                other `Kbd` — so it has to behave like one. It was a hint beside
+                the word "close", which meant clicking it played the press
+                animation and did nothing, and the pointer over the label turned
+                into a text caret. Backdrop click and Esc still work; this just
+                stops the affordance lying about itself. */}
+            <div className={s.shortcutFooter}>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={handleClose}
+                className={s.shortcutHint}
+              >
                 <Kbd>Esc</Kbd>
                 <span>close</span>
-              </div>
+              </Button>
             </div>
           </div>
 

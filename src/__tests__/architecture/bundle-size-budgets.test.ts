@@ -160,12 +160,12 @@ const BUDGETS: ChunkBudget[] = [
     maxBytes: 100_000,
     rationale:
       'content workspace route after Tiptap/LiveCanvas lazy split and shared ' +
-      'data-binding picker adoption. Current ~91 KB raw / ~31 KB gzipped ' +
-      'upstream. This fork also layers the upstream-pending feature stack, ' +
-      'whose shared core/admin imports land in the same chunk; each of those ' +
-      'branches is inside the budget on its own, and the total stays under ' +
-      'the upstream ceiling, so the number is upstream\'s rather than a ' +
-      'fork-only raise.',
+      'data-binding picker adoption, including the role editor safeguards that ' +
+      'keep Owner-only capabilities visible but non-selectable. Current ~91 KB ' +
+      'raw / ~31 KB gzipped upstream. This fork layers the upstream-pending ' +
+      'stack on top; its shared core/admin imports land in the same chunk and ' +
+      'the total still sits under this ceiling, so the number stays the ' +
+      'upstream one rather than becoming a fork-only raise.',
   },
 
   {

@@ -323,15 +323,19 @@ function bodyHtmlAttributes(value: unknown): string {
 /**
  * `<head>` metadata tags derived from site settings + page.
  *
- * - `title` falls back through metaTitle → page.title → site.name.
- * - Title and description are token-interpolated against the render
+ * - `title` falls back through the caller's `documentMeta.title` (a
+ *   post-type entry's authored SEO title) → metaTitle → page.title →
+ *   site.name.
+ * - `description` falls back through `documentMeta.description` → the
+ *   site-level metaDescription.
+ * - Whichever value wins is then token-interpolated against the render
  *   context before escaping, so `{currentEntry.*}` / `{page.*}` /
- *   `{site.*}` resolve per-entry on entry routes (SEO titles like
- *   `{currentEntry.name} | Acme`) instead of publishing the template
- *   page's static text. The `??` chain picks the raw value first;
- *   a token that resolves empty does NOT re-trigger the fallback —
- *   authors opt into fallbacks with the token's own `{...|fallback}`
- *   syntax.
+ *   `{site.*}` resolve per-entry on entry routes. That serves both ways
+ *   of authoring a title: fill each row's SEO field by hand, or write one
+ *   pattern like `{currentEntry.name} | Acme` on the template page. The
+ *   fallback chain picks the raw value first; a token that resolves empty
+ *   does NOT re-trigger the fallback — authors opt into fallbacks with the
+ *   token's own `{...|fallback}` syntax.
  * - URL-typed settings (faviconUrl) are validated by
  *   isSafeUrl() (blocks `javascript:` / `vbscript:` schemes) and then
  *   escapeHtml()'d for safe attribute interpolation.
@@ -354,7 +358,8 @@ function buildDocumentMetaTags(
   const { settings } = site
   const description = override.description || settings.metaDescription
   const metaDesc = description
-    ? `\n  <meta name="description" content="${escapeHtml(interpolateTokens(description, context))}">`
+    ? `
+  <meta name="description" content="${escapeHtml(interpolateTokens(description, context))}">`
     : ''
   const favicon =
     settings.faviconUrl && isSafeUrl(settings.faviconUrl)
@@ -403,7 +408,7 @@ function buildRuntimeAssetsBlock(
   const hasInfiniteLoops = acc.infiniteLoopIds.size > 0
   const loopEndpointBaseUrl = options.loopEndpointBaseUrl ?? '/_instatic/loop/'
   const loopRuntimeScript = hasInfiniteLoops
-    ? `  <script type="module" src="/_instatic/assets/loop-runtime.js" data-instatic-loop-endpoint="${escapeHtml(loopEndpointBaseUrl)}" defer></script>`
+    ? `  <script type="module" src="/_instatic/assets/loop-runtime.js" data-instatic-loop-endpoint="${escapeHtml(loopEndpointBaseUrl)}"></script>`
     : ''
 
   // Hole runtime — injected into <head> (not body-end) so IntersectionObserver

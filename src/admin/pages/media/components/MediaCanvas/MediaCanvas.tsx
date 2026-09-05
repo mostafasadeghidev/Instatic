@@ -198,6 +198,28 @@ export function MediaCanvas({ workspace, selectionMode = 'standard' }: MediaCanv
     writeMediaAssetDragData(event.dataTransfer, dragIds)
   }
 
+  /**
+   * Which assets a right-click acts on.
+   *
+   * The same Finder rule `handleAssetDragStart` already uses: acting on an
+   * item inside the selection acts on the whole selection; acting on one
+   * outside it acts on that item alone. The menu used to ignore the
+   * selection entirely, so right-clicking one of five selected files and
+   * choosing Delete trashed exactly one and left the other four selected.
+   *
+   * Deliberately does NOT adopt the clicked asset into the selection the way
+   * the site explorer does. Media's floating windows are derived from the
+   * selection during render — `viewerOpen` at <= 1, `bulkEditOpen` at >= 2
+   * (MediaPage.tsx) — so writing the selection here would pop a window open
+   * underneath the menu.
+   */
+  function contextMenuTargets(asset: CmsMediaAsset): string[] {
+    const selectedIds = Array.from(workspace.selectedAssetIds)
+    return workspace.selectedAssetIds.has(asset.id) && selectedIds.length > 0
+      ? selectedIds
+      : [asset.id]
+  }
+
   function handleFolderDragStart(folder: CmsMediaFolder, event: DragEvent<HTMLButtonElement>) {
     if (!canWrite) {
       event.preventDefault()
@@ -519,42 +541,57 @@ export function MediaCanvas({ workspace, selectionMode = 'standard' }: MediaCanv
         )}
       </div>
 
-      {contextMenu && (
-        <ExplorerItemContextMenu
-          x={contextMenu.x}
-          y={contextMenu.y}
-          ariaLabel="Media item options"
-          onClose={() => setContextMenu(null)}
-          onRename={() => {
-            setRenameTarget(contextMenu.asset)
-            setContextMenu(null)
-          }}
-          onDelete={() => {
-            const target = contextMenu.asset
-            setContextMenu(null)
-            if (!trashView) {
-              void workspace.trashAsset(target.id)
-              return
+      {contextMenu && (() => {
+        const targets = contextMenuTargets(contextMenu.asset)
+        const many = targets.length > 1
+        return (
+          <ExplorerItemContextMenu
+            x={contextMenu.x}
+            y={contextMenu.y}
+            ariaLabel="Media item options"
+            onClose={() => setContextMenu(null)}
+            {...(many ? { headerLabel: `${targets.length} files` } : {})}
+            onRename={() => {
+              setRenameTarget(contextMenu.asset)
+              setContextMenu(null)
+            }}
+            onDelete={() => {
+              setContextMenu(null)
+              if (!trashView) {
+                for (const id of targets) void workspace.trashAsset(id)
+                return
+              }
+              // Purging is the one media action nothing can undo: it removes
+              // the original and every generated size from the storage
+              // adapter, not just the row. `alwaysConfirm` because the
+              // `confirmBeforeDelete` preference defaults off, and an operator
+              // who turned it off was opting out of confirming a TRASH, which
+              // is reversible.
+              confirmDelete({
+                title: many
+                  ? `Delete ${targets.length} files permanently?`
+                  : `Delete "${contextMenu.asset.filename}" permanently?`,
+                description:
+                  'This removes the file and every generated size from disk. It cannot be undone.',
+                confirmLabel: 'Delete permanently',
+                alwaysConfirm: true,
+                commit: () => {
+                  for (const id of targets) void workspace.purgeAsset(id)
+                },
+              })
+            }}
+            deleteLabel={
+              many
+                ? `${trashView ? 'Delete' : 'Trash'} ${targets.length} files`
+                : trashView ? 'Delete permanently' : 'Move to Trash'
             }
-            // Purging is the one media action nothing can undo: it removes the
-            // original and every generated size from the storage adapter, not
-            // just the row. `alwaysConfirm` because the `confirmBeforeDelete`
-            // preference defaults off, and an operator who turned it off was
-            // opting out of confirming a TRASH, which is reversible.
-            confirmDelete({
-              title: `Delete "${target.filename}" permanently?`,
-              description:
-                'This removes the file and every generated size from disk. It cannot be undone.',
-              confirmLabel: 'Delete permanently',
-              alwaysConfirm: true,
-              commit: () => void workspace.purgeAsset(target.id),
-            })
-          }}
-          showRename={canWrite}
-          showDelete={canDelete}
-          extraItems={buildExtraMenuItems(contextMenu.asset)}
-        />
-      )}
+            // Renaming is a single-file operation — there is one name field.
+            showRename={canWrite && !many}
+            showDelete={canDelete}
+            extraItems={buildExtraMenuItems(contextMenu.asset)}
+          />
+        )
+      })()}
 
       {renameTarget && (
         <ExplorerRenameDialog

@@ -99,6 +99,45 @@ const CAPABILITIES: Capability[] = [
     file: 'server/publish/stalePluginAssets.ts',
     marker: 'sweepStalePluginVersionAssets',
   },
+  {
+    pr: '#497',
+    what: 'a permanent media delete asks before it happens',
+    file: 'src/admin/pages/media/components/MediaViewerWindow/MediaViewerWindow.tsx',
+    marker: 'purgeConfirmOpen',
+  },
+  {
+    pr: '#498',
+    what: 'a same-version plugin upload is a reinstall, not a first install',
+    file: 'server/handlers/cms/plugins/install.ts',
+    // #359 removed the old-version asset deletion this fix also had to guard,
+    // so what is left to pin is the rollback guard: on a reinstall the "new"
+    // version dir IS the restored one, and deleting it would 404 every page.
+    marker: "newManifest.version !== existing.version",
+  },
+  {
+    pr: '#499',
+    what: "the settings modal's Esc keycap closes the modal it advertises",
+    file: 'src/admin/modals/Settings/SettingsModal.tsx',
+    marker: 'stops the affordance lying about itself',
+  },
+  {
+    pr: '#500',
+    what: 'only the topmost floating surface answers Escape',
+    file: 'src/admin/shared/FloatingWindow/useTopmostEscape.ts',
+    marker: 'useTopmostEscape',
+  },
+  {
+    pr: '#501',
+    what: 'a floating window can be minimized instead of dismissed',
+    file: 'src/admin/shared/FloatingWindow/FloatingWindow.tsx',
+    marker: 'minimizable',
+  },
+  {
+    pr: '#505',
+    what: 'media records what depends on an asset, so a delete can warn',
+    file: 'server/repositories/media.ts',
+    marker: 'setMediaUsageRef',
+  },
 ]
 
 describe('fork stack — every pending fix is still present', () => {

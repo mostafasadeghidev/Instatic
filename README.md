@@ -33,7 +33,7 @@ A self-hosted CMS where the visual editor, content engine, and publisher all liv
 <br>
 
 > [!NOTE]
-> **This is `stack/all-fixes` on the [mostafasadeghidev/Instatic](https://github.com/mostafasadeghidev/Instatic) fork** — upstream [CoreBunch/Instatic](https://github.com/CoreBunch/Instatic) `main` plus ten changes that have been submitted upstream and are awaiting review:
+> **This is `stack/all-fixes` on the [mostafasadeghidev/Instatic](https://github.com/mostafasadeghidev/Instatic) fork** — upstream [CoreBunch/Instatic](https://github.com/CoreBunch/Instatic) `main` plus eleven changes that have been submitted upstream and are awaiting review:
 >
 > | Upstream PR | Change |
 > |---|---|
@@ -46,7 +46,8 @@ A self-hosted CMS where the visual editor, content engine, and publisher all liv
 > | [#498](https://github.com/CoreBunch/Instatic/pull/498) | Re-uploading a plugin at the same version is a reinstall, not a first install |
 > | [#499](https://github.com/CoreBunch/Instatic/pull/499) | The settings modal's `Esc` keycap closes the modal it advertises |
 > | [#500](https://github.com/CoreBunch/Instatic/pull/500) | Media's multi-selection reaches the context menu, bulk purge, and Escape |
-> | [#501](https://github.com/CoreBunch/Instatic/pull/501) | Select every visible media asset with Ctrl/Cmd+A or a toolbar button |
+> | [#501](https://github.com/CoreBunch/Instatic/pull/501) | Select every visible media asset with Ctrl/Cmd+A, and minimize a floating window instead of being stuck with it |
+> | [#505](https://github.com/CoreBunch/Instatic/pull/505) | Media records what depends on an asset, so deleting an avatar warns first |
 >
 > Landed upstream, so no longer carried as a fork change:
 >

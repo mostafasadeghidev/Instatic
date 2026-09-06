@@ -53,6 +53,8 @@ import { childFoldersForParent } from '../../utils/folderTree'
 import { writeMediaFolderDragData } from '../../utils/mediaDragDrop'
 import { useMediaDnd } from '../../hooks/useMediaDnd'
 import { useMediaSelection } from '../../hooks/useMediaSelection'
+import { UsageWarningNotice } from '../UsageWarningNotice'
+import { resolveUsageWarning } from '../../utils/usageWarning'
 import styles from './MediaCanvas.module.css'
 import {
   AssetRow,
@@ -526,6 +528,7 @@ export function MediaCanvas({ workspace, selectionMode = 'standard' }: MediaCanv
               setContextMenu(null)
             }}
             onDelete={() => {
+              const filename = contextMenu.asset.filename
               setContextMenu(null)
               if (!trashView) {
                 for (const id of targets) void workspace.trashAsset(id)
@@ -537,18 +540,25 @@ export function MediaCanvas({ workspace, selectionMode = 'standard' }: MediaCanv
               // `confirmBeforeDelete` preference defaults off, and an operator
               // who turned it off was opting out of confirming a TRASH, which
               // is reversible.
-              confirmDelete({
-                title: many
-                  ? `Delete ${targets.length} files permanently?`
-                  : `Delete "${contextMenu.asset.filename}" permanently?`,
-                description:
-                  'This removes the file and every generated size from disk. It cannot be undone.',
-                confirmLabel: 'Delete permanently',
-                alwaysConfirm: true,
-                commit: () => {
-                  for (const id of targets) void workspace.purgeAsset(id)
-                },
-              })
+              //
+              // The usage lookup is awaited BEFORE the dialog opens so the
+              // warning is on screen when the operator reads it, not after.
+              void (async () => {
+                const warning = await resolveUsageWarning(workspace.lookupUsage, targets)
+                confirmDelete({
+                  title: many
+                    ? `Delete ${targets.length} files permanently?`
+                    : `Delete "${filename}" permanently?`,
+                  description:
+                    'This removes the file and every generated size from disk. It cannot be undone.',
+                  details: <UsageWarningNotice warning={warning} />,
+                  confirmLabel: 'Delete permanently',
+                  alwaysConfirm: true,
+                  commit: () => {
+                    for (const id of targets) void workspace.purgeAsset(id)
+                  },
+                })
+              })()
             }}
             deleteLabel={
               many

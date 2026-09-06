@@ -12,6 +12,8 @@
 import { useState } from 'react'
 import { Button } from '@ui/components/Button'
 import { Dialog } from '@ui/components/Dialog'
+import { resolveUsageWarning, type UsageWarning } from '../../utils/usageWarning'
+import { UsageWarningNotice } from '../UsageWarningNotice'
 import { Input, Textarea } from '@ui/components/Input'
 import { canDeleteMedia, canWriteMedia } from '@admin/access'
 import { useCurrentAdminUser } from '@admin/sessionContext'
@@ -177,6 +179,7 @@ export function BulkEditWindow({ workspace, open, onClose }: BulkEditWindowProps
   const [plan, setPlan] = useState<BatchPlan>(EMPTY_PLAN)
   const [busy, setBusy] = useState(false)
   const [purgeConfirmOpen, setPurgeConfirmOpen] = useState(false)
+  const [purgeWarning, setPurgeWarning] = useState<UsageWarning | null>(null)
   const [progress, setProgress] = useState<{ done: number; total: number } | null>(null)
 
   const assets = workspace.selectedAssets
@@ -368,7 +371,19 @@ export function BulkEditWindow({ workspace, open, onClose }: BulkEditWindowProps
               <Button
                 variant="destructive"
                 size="sm"
-                onClick={() => setPurgeConfirmOpen(true)}
+                onClick={() => {
+                  // Only the trashed members will be purged, so the warning
+                  // counts and asks about those — "1 of 3", not "1 of 7".
+                  void (async () => {
+                    const ids = assets
+                      .filter((a) => a.deletedAt !== null)
+                      .map((a) => a.id)
+                    setPurgeWarning(
+                      await resolveUsageWarning(workspace.lookupUsage, ids),
+                    )
+                    setPurgeConfirmOpen(true)
+                  })()
+                }}
                 disabled={busy}
               >
                 <TrashSolidIcon size={13} />
@@ -405,6 +420,7 @@ export function BulkEditWindow({ workspace, open, onClose }: BulkEditWindowProps
           This removes each file and every generated size from disk. Any page
           still referencing one will render a broken image.
         </p>
+        <UsageWarningNotice warning={purgeWarning} />
       </Dialog>
     </FloatingWindow>
   )

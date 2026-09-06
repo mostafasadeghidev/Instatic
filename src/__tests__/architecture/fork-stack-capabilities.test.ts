@@ -138,6 +138,12 @@ const CAPABILITIES: Capability[] = [
     file: 'server/repositories/media.ts',
     marker: 'setMediaUsageRef',
   },
+  {
+    pr: '#507',
+    what: 'the permanent-delete confirmation names what still depends on a file',
+    file: 'src/admin/pages/media/utils/usageWarning.ts',
+    marker: 'resolveUsageWarning',
+  },
 ]
 
 describe('fork stack — every pending fix is still present', () => {

@@ -33,7 +33,7 @@ A self-hosted CMS where the visual editor, content engine, and publisher all liv
 <br>
 
 > [!NOTE]
-> **This is `stack/all-fixes` on the [mostafasadeghidev/Instatic](https://github.com/mostafasadeghidev/Instatic) fork** — upstream [CoreBunch/Instatic](https://github.com/CoreBunch/Instatic) `main` plus twelve changes that have been submitted upstream and are awaiting review:
+> **This is `stack/all-fixes` on the [mostafasadeghidev/Instatic](https://github.com/mostafasadeghidev/Instatic) fork** — upstream [CoreBunch/Instatic](https://github.com/CoreBunch/Instatic) `main` plus ten changes that have been submitted upstream and are awaiting review:
 >
 > | Upstream PR | Change |
 > |---|---|
@@ -41,19 +41,19 @@ A self-hosted CMS where the visual editor, content engine, and publisher all liv
 > | [#335](https://github.com/CoreBunch/Instatic/pull/335) | `@own-created` contentAccess marker — plugins can use tables they created at runtime |
 > | [#336](https://github.com/CoreBunch/Instatic/pull/336) | Install consent dialog renders the per-table `contentAccess` allowlist |
 > | [#357](https://github.com/CoreBunch/Instatic/pull/357) | A node can be shown only on the rows where a field is filled in (`visibleWhen`) |
-> | [#359](https://github.com/CoreBunch/Instatic/pull/359) | A plugin upgrade no longer 404s the assets every published page links |
 > | [#497](https://github.com/CoreBunch/Instatic/pull/497) | Permanently deleting a media asset asks first, on both paths that offer it |
-> | [#498](https://github.com/CoreBunch/Instatic/pull/498) | Re-uploading a plugin at the same version is a reinstall, not a first install |
 > | [#499](https://github.com/CoreBunch/Instatic/pull/499) | The settings modal's `Esc` keycap closes the modal it advertises |
 > | [#500](https://github.com/CoreBunch/Instatic/pull/500) | Media's multi-selection reaches the context menu, bulk purge, and Escape |
 > | [#501](https://github.com/CoreBunch/Instatic/pull/501) | Select every visible media asset with Ctrl/Cmd+A, and minimize a floating window instead of being stuck with it |
 > | [#505](https://github.com/CoreBunch/Instatic/pull/505) | Media records what depends on an asset, so deleting an avatar warns first |
-> | [#507](https://github.com/CoreBunch/Instatic/pull/507) | The permanent-delete confirmation names the files something still depends on |
+> | [#507](https://github.com/CoreBunch/Instatic/pull/507) | The permanent-delete confirmation names every page, on every branch, that still uses a file |
 >
 > Landed upstream, so no longer carried as a fork change:
 >
 > | Upstream PR | Change |
 > |---|---|
+> | [#359](https://github.com/CoreBunch/Instatic/pull/359) | A plugin upgrade no longer 404s the assets every published page links — merged |
+> | [#498](https://github.com/CoreBunch/Instatic/pull/498) | Re-uploading a plugin at the same version is a reinstall, not a first install — merged |
 > | [#354](https://github.com/CoreBunch/Instatic/pull/354) | Published pages can load cross-origin video/audio (`media-src` matches `img-src`) — merged |
 > | [#348](https://github.com/CoreBunch/Instatic/pull/348) | Loops can filter and sort by a row's own cell, not just by table columns — merged |
 > | [#337](https://github.com/CoreBunch/Instatic/pull/337) | `{currentEntry.*}` tokens interpolate in published meta title / description — merged |

@@ -22,6 +22,8 @@
 import { describe, expect, test } from 'bun:test'
 import { readFileSync } from 'node:fs'
 import { join } from 'node:path'
+import { pgMigrations } from '../../../server/db/migrations-pg'
+import { sqliteMigrations } from '../../../server/db/migrations-sqlite'
 
 const root = join(import.meta.dir, '../../..')
 
@@ -33,12 +35,6 @@ interface Capability {
 }
 
 const CAPABILITIES: Capability[] = [
-  {
-    pr: '#333',
-    what: 'definePlugin carries contentAccess into the built manifest',
-    file: 'src/core/plugin-sdk/builders/definePlugin.ts',
-    marker: 'contentAccess',
-  },
   {
     pr: '#334',
     what: 'a format:media binding resolves an asset id to its served URL',
@@ -52,40 +48,10 @@ const CAPABILITIES: Capability[] = [
     marker: '@own-created',
   },
   {
-    pr: '#337',
-    what: 'entry tokens interpolate in the published meta title/description',
-    file: 'src/core/publisher/render.ts',
-    marker: 'interpolateTokens',
-  },
-  {
-    pr: '#348',
-    what: "loops filter and sort by a row's own cell",
-    file: 'src/core/loops/cellFilter.ts',
-    marker: 'cellFilterSql',
-  },
-  {
-    pr: '#349',
-    what: 'Site Import reports asset references the archive cannot satisfy',
-    file: 'src/core/siteImport/types.ts',
-    marker: 'unresolved-asset',
-  },
-  {
-    pr: '#350',
-    what: 'a loop can carry custom HTML attributes',
-    file: 'src/modules/base/loop/index.ts',
-    marker: 'htmlAttributes',
-  },
-  {
-    pr: '#353',
-    what: 'tokens interpolate inside htmlAttributes, not just string props',
-    file: 'src/core/templates/dynamicBindings.ts',
-    marker: 'HTML_ATTRIBUTES_PROP_KEY',
-  },
-  {
-    pr: '#354',
-    what: 'published pages may load cross-origin video/audio',
-    file: 'src/core/publisher/cspPlan.ts',
-    marker: 'media-src',
+    pr: '#336',
+    what: 'the install consent dialog renders the contentAccess table list',
+    file: 'src/admin/pages/plugins/components/PermissionReviewSection/computeContentAccessDiff.ts',
+    marker: 'computeContentAccessDiff',
   },
   {
     pr: '#357',
@@ -94,25 +60,10 @@ const CAPABILITIES: Capability[] = [
     marker: 'visibleWhen',
   },
   {
-    pr: '#359',
-    what: 'a plugin upgrade no longer 404s the assets published pages link',
-    file: 'server/publish/stalePluginAssets.ts',
-    marker: 'sweepStalePluginVersionAssets',
-  },
-  {
     pr: '#497',
     what: 'a permanent media delete asks before it happens',
     file: 'src/admin/pages/media/components/MediaViewerWindow/MediaViewerWindow.tsx',
     marker: 'purgeConfirmOpen',
-  },
-  {
-    pr: '#498',
-    what: 'a same-version plugin upload is a reinstall, not a first install',
-    file: 'server/handlers/cms/plugins/install.ts',
-    // #359 removed the old-version asset deletion this fix also had to guard,
-    // so what is left to pin is the rollback guard: on a reinstall the "new"
-    // version dir IS the restored one, and deleting it would 404 every page.
-    marker: "newManifest.version !== existing.version",
   },
   {
     pr: '#499',
@@ -167,6 +118,37 @@ describe('fork stack — every pending fix is still present', () => {
       expect(source).toContain(cap.marker)
     })
   }
+
+  test('no column is added by two different migrations', () => {
+    // The one merge mistake that takes a live server down on boot. This branch
+    // carries some migrations under ids installations have already recorded,
+    // while the matching upstream PR has to use a different number — #335 is
+    // `025_data_tables_created_by_plugin` here and `031_…` upstream. When the
+    // PR lands and main merges in, keeping both entries makes every recorded
+    // installation run the ALTER a second time, and SQLite has no
+    // `add column if not exists` to absorb it. Idempotent migrations (an
+    // insert guarded by `not exists`) may be renumbered freely; an ALTER may
+    // not, and this is the check that says so.
+    for (const [dialect, migrations] of [['sqlite', sqliteMigrations], ['pg', pgMigrations]] as const) {
+      const addedBy = new Map<string, string>()
+      const duplicates: string[] = []
+      for (const migration of migrations) {
+        for (const m of migration.sql.matchAll(/alter\s+table\s+(\w+)\s+add\s+column\s+(?:if\s+not\s+exists\s+)?(\w+)/gi)) {
+          const column = `${m[1]!.toLowerCase()}.${m[2]!.toLowerCase()}`
+          const first = addedBy.get(column)
+          if (first && first !== migration.id) duplicates.push(`${column}: ${first} and ${migration.id}`)
+          else addedBy.set(column, migration.id)
+        }
+      }
+      if (duplicates.length > 0) {
+        throw new Error(
+          `[fork-stack] ${dialect} migrations add the same column twice:\n  ${duplicates.join('\n  ')}\n`
+          + `Keep the id installations already recorded and delete the incoming copy.`,
+        )
+      }
+      expect(duplicates).toEqual([])
+    }
+  })
 
   test('the publish failure still tells the author what went wrong', () => {
     // Ours (#358) was superseded by upstream's `RuntimeScriptBuildError`,

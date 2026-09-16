@@ -1178,8 +1178,8 @@ export const pgMigrations: Migration[] = [
     // Shares the `025_` prefix with the migration above deliberately — see
     // the note on the SQLite twin. The runner keys on the full id string, and
     // this id has already been recorded by live installations, so it must not
-    // be renumbered. Upstream carries it as `031_…` (#335): when that merges
-    // in, delete the 031 copy here too — the SQLite twin explains why.
+    // be renumbered. Upstream carries it as `033_…` (#335): when that merges
+    // in, delete the 033 copy here too — the SQLite twin explains why.
     id: '025_data_tables_created_by_plugin',
     sql: `
       alter table data_tables add column created_by_plugin_id text;

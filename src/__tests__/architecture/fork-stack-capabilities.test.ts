@@ -123,7 +123,7 @@ describe('fork stack — every pending fix is still present', () => {
     // The one merge mistake that takes a live server down on boot. This branch
     // carries some migrations under ids installations have already recorded,
     // while the matching upstream PR has to use a different number — #335 is
-    // `025_data_tables_created_by_plugin` here and `031_…` upstream. When the
+    // `025_data_tables_created_by_plugin` here and `033_…` upstream. When the
     // PR lands and main merges in, keeping both entries makes every recorded
     // installation run the ALTER a second time, and SQLite has no
     // `add column if not exists` to absorb it. Idempotent migrations (an

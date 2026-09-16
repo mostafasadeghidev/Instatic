@@ -1323,9 +1323,10 @@ export const sqliteMigrations: Migration[] = [
     // id would re-run it and fail the boot.
     //
     // The upstream PR (#335) carries this same ALTER as
-    // `031_data_tables_created_by_plugin`, because upstream's 025–030 were
-    // taken. When it lands and main merges into this branch, DELETE the
-    // incoming 031 entry from both migration files and keep this one: with
+    // `033_data_tables_created_by_plugin`, because upstream's 025–030 were
+    // taken and open PRs claim 031–032. When it lands and main merges into
+    // this branch, DELETE the incoming 033 entry from both migration files
+    // and keep this one: with
     // both present, every installation that recorded 025 runs the ALTER a
     // second time and does not boot. `fork-stack-capabilities.test.ts` fails
     // the build if that ever happens.

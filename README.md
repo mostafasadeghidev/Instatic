@@ -52,8 +52,8 @@ A self-hosted CMS where the visual editor, content engine, and publisher all liv
 >
 > | Upstream PR | Change |
 > |---|---|
-> | [#359](https://github.com/CoreBunch/Instatic/pull/359) | A plugin upgrade no longer 404s the assets every published page links — merged |
-> | [#498](https://github.com/CoreBunch/Instatic/pull/498) | Re-uploading a plugin at the same version is a reinstall, not a first install — merged |
+> | [#359](https://github.com/CoreBunch/Instatic/pull/359) | A plugin upgrade no longer 404s the assets every published page links — merged, shipped in v0.0.20 |
+> | [#498](https://github.com/CoreBunch/Instatic/pull/498) | Re-uploading a plugin at the same version is a reinstall, not a first install — merged, shipped in v0.0.20 |
 > | [#354](https://github.com/CoreBunch/Instatic/pull/354) | Published pages can load cross-origin video/audio (`media-src` matches `img-src`) — merged |
 > | [#348](https://github.com/CoreBunch/Instatic/pull/348) | Loops can filter and sort by a row's own cell, not just by table columns — merged |
 > | [#337](https://github.com/CoreBunch/Instatic/pull/337) | `{currentEntry.*}` tokens interpolate in published meta title / description — merged |

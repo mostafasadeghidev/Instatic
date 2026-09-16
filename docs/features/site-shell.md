@@ -217,6 +217,24 @@ The worker is editor assistance only: esbuild remains the authoritative canvas
 and publish compiler, and semantic type errors do not replace the publish-time
 runtime validation gate.
 
+#### Where build failures surface
+
+`useRuntimeScriptDiagnostics()` posts the draft to be built and runs once, in
+`AdminCanvasLayout`. `summarizeRuntimeDiagnostics` (`@core/site-runtime`)
+groups the result per file, and `AdminCanvasEditorBody` publishes that summary
+through `RuntimeDiagnosticsContext` so every surface reports the same build:
+
+- **The publish gate** blocks with "N code errors" and, on hover, lists each
+  failure with its file, position and message (`SiteDiagnosticsList`). The
+  status text carries the same tooltip as the button: a blocked publish
+  disables the button, leaving the status as the only thing left to hover.
+- **Site Explorer rows** carry a count badge on any script or stylesheet with
+  problems (`ProblemBadge`), whose tooltip shows that file's messages.
+- **The code editor** underlines them in place, via `codeMirrorDiagnostics`.
+
+A count with no detail is not actionable, which is why the gate and the tree
+both carry the messages rather than only the number.
+
 ### Site Explorer organization — `SiteExplorerOrganization`
 
 Site Explorer organization is split by whether a section owns URL/file paths.
@@ -300,7 +318,7 @@ type SitePackageJson = {
 
 The CMS supports plugins that ship their own npm deps and runtime imports (e.g. `three`). When a site declares a dependency, `bun install` runs against a per-site workspace under `uploads/sites/<siteId>/runtime/`, producing a hashed cache directory the server serves at `/_instatic/runtime/cache/<hash>/...`. The runtime cache layout is owned by `src/core/site-runtime/` and served by `server/publish/runtime/`.
 
-The Site → Dependencies panel edits this `package.json`. Saving triggers a `bun install` and updates the runtime lock.
+The Site → Dependencies panel edits this `package.json`: it browses the npm registry through the server proxy and installs into `dependencies` (or `devDependencies`) with a caret range. Every manifest change is picked up by `useAutoResolveDependencies`, which resolves the lock and runs `bun install`. Panel and proxy: [`dependencies.md`](dependencies.md).
 
 ### `SiteRuntimeConfig`
 
@@ -701,7 +719,7 @@ createFile('src/styles/analytics.css', 'style', '/* ... */')
 
 ### Declare a site dependency
 
-Site → Dependencies panel edits `packageJson.dependencies`:
+Site → Dependencies panel (search the registry, open the package, Install) writes `packageJson.dependencies`; the same happens when a runtime-script diagnostic's **Add** action runs or a module declares a dependency:
 
 ```jsonc
 {
@@ -709,7 +727,7 @@ Site → Dependencies panel edits `packageJson.dependencies`:
 }
 ```
 
-Save → server runs `bun install` in the per-site workspace → `runtime.dependencyLock` updates → the publisher emits a `<script type="importmap">` mapping `three` to `/_instatic/runtime/cache/<hash>/three/build/three.module.js`.
+The auto-resolve hook posts the manifest to `/runtime/dependencies/resolve` → the server resolves versions through `server/registry/client.ts` and runs `bun install` in the per-site workspace → `runtime.dependencyLock` updates → the publisher emits a `<script type="importmap">` mapping `three` to `/_instatic/runtime/cache/<hash>/three/build/three.module.js`.
 
 A plugin canvas module can then `import * as THREE from 'three'` and it resolves at runtime.
 

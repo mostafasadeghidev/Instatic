@@ -1526,7 +1526,10 @@ export const sqliteMigrations: Migration[] = [
     // carries no guard — SQLite has no `add column if not exists`, as migration
     // 010 already documents — so a new id re-runs it against a column that
     // exists and takes the boot down.
-    id: '031_data_tables_created_by_plugin',
+    //
+    // `033` because the ids before it are claimed by other open PRs: `031`
+    // by #495 (`031_installed_plugins_source`) and `032` by #505.
+    id: '033_data_tables_created_by_plugin',
     sql: `
       alter table data_tables add column created_by_plugin_id text;
     `,

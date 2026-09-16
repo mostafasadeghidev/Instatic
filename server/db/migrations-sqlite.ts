@@ -1526,11 +1526,9 @@ export const sqliteMigrations: Migration[] = [
     // what makes the id itself safe to change: an installation that recorded
     // it under another number runs it again and inserts nothing.
     //
-    // `032`, skipping `031`, on purpose: #335 is in review and claims
-    // `031_data_tables_created_by_plugin`. Ids are only ever sorted, so a gap
-    // costs nothing, and whichever of the two lands first neither has to be
-    // renumbered. That is not true of #335's own migration — an ALTER re-run
-    // under a new id fails the boot — which is why it keeps its number here.
+    // `032` sits between two ids other open PRs claim: `031` (#495) and `033`
+    // (#335). Ids are only ever sorted, so the gaps cost nothing, and
+    // whichever lands first, nobody has to renumber.
     id: '032_backfill_avatar_usage_refs',
     sql: `
       insert into media_usage_refs (asset_id, ref_kind, ref_id, ref_path)

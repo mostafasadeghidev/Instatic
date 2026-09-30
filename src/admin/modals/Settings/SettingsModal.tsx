@@ -4,8 +4,8 @@
  * Shares the visual language of the Spotlight palette and the Module
  * Inserter: a direct-token panel shell, an `--bg-surface-2` rail with
  * categorical accent icon chips, an accent-bar section header, and a
- * shared `Esc` keycap affordance (backdrop click / Esc both close — there
- * is no dedicated close button, matching the other two modals).
+ * shared `Esc` keycap affordance, which is also the close button — backdrop
+ * click and Esc close it too.
  *
  * Guideline #225 (Modal Shell Requirements, WCAG 2.1 AA):
  * - role="dialog" + aria-modal="true" + aria-labelledby

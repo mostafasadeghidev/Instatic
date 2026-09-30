@@ -61,16 +61,17 @@ A self-hosted CMS where the visual editor, content engine, and publisher all liv
 > | [#350](https://github.com/CoreBunch/Instatic/pull/350) | A loop can carry custom HTML attributes, like every other structural module — merged |
 > | [#353](https://github.com/CoreBunch/Instatic/pull/353) | `{currentEntry.*}` tokens interpolate inside `htmlAttributes`, not just string props — merged |
 > | [#333](https://github.com/CoreBunch/Instatic/pull/333) | `definePlugin` no longer drops `contentAccess` from the built manifest — merged |
+> | [#398](https://github.com/CoreBunch/Instatic/pull/398) | `docs/server.md` records when an error needs its own typed class and status instead of a plain `throw` — merged, shipped in v0.0.17 |
 >
-> The fork's `main` tracks upstream untouched; each fix also lives on its own branch. To deploy **with** the fixes:
+> The fork's `main` tracks upstream untouched; each open PR also lives on its own branch. A branch is deleted once its PR merges — its commits stay reachable upstream as `refs/pull/<n>/head`. To deploy **with** the fixes:
 >
 > ```sh
-> git clone https://github.com/mostafasadeghidev/Instatic.git
+> git clone -b stack/all-fixes https://github.com/mostafasadeghidev/Instatic.git
 > cd Instatic
 > docker compose -f compose.prod.yml -f compose.sqlite.yml -f compose.build.yml up -d --build
 > ```
 >
-> (`stack/all-fixes` is the fork's default branch, so a plain `clone` gets it.) Once the PRs merge upstream, prefer upstream releases over this branch.
+> The `-b` matters: the fork's default branch is `main`, identical to upstream, so a plain `clone` — or a fork of this fork — starts from clean upstream code and none of the changes above. Once the PRs merge upstream, prefer upstream releases over this branch.
 
 A modern website usually means assembling a stack: a headless CMS, a framework, a host, a form service, an analytics vendor, an image CDN — each with its own bill, dashboard, and 2 a.m. outage. Instatic is the opposite bet. One Bun server holds the whole thing — the canvas editor, the content engine, media, auth, forms, plugins, and the publisher — and you run it wherever you like, backed by SQLite or Postgres.
 

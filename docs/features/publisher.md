@@ -10,7 +10,7 @@ The published output has **no framework runtime**, **no client-side hydration of
 
 - Entry point: `publishPage(page, site, registry, options?)` in `src/core/publisher/render.ts`. Returns `{ filename, html, jsModuleIds }`, where `html` is the full document string and `jsModuleIds` are per-page module-JS candidates for the server injection pass.
 - Recursion: `renderNode(nodeId, config, acc)` in `renderNode.ts`. Bottom-up walk. Two specialized renderers hook in for `base.visual-component-ref` and `base.loop`.
-- Hidden nodes (`node.hidden`) are pruned at the top of `renderNode`, before unknown-module comments, dynamic holes, specialized renderers, standard rendering, or CSS collection.
+- Hidden nodes are pruned at the top of `renderNode`, before unknown-module comments, dynamic holes, specialized renderers, standard rendering, or CSS collection — both the author's own `node.hidden` switch and `node.visibleWhen`, the per-render condition evaluated against the row being rendered.
 - Per-node flow: render children → resolve effective + dynamic props → `escapeProps` → call `module.render(props, renderedChildren)` → collect deduped CSS → inject author class names.
 - CSS is deduped by `moduleId` via `CssCollector` (~60–80% size reduction on typical pages).
 - Module `render()` is a **pure function**: no DOM, no React, no side effects (Constraint #179).
@@ -40,7 +40,7 @@ src/core/publisher/
 ├── userStylesheets.ts              — site-level user stylesheets
 ├── siteCssBundle.ts                — hash-named bundle composition (reset + framework + style)
 ├── sizesResolver.ts                — `<img sizes>` derived from the layout: linear width model (caps, fractions, grid tracks) per viewport tier
-├── dynamicDetection.ts             — Single walker for the 4 auto-detection rules; powers Layers A and C
+├── dynamicDetection.ts             — Single walker for the 5 auto-detection rules; powers Layers A and C
 └── utils.ts                        — escapeHtml, isSafeUrl, safeUrl (re-exported from @core/html-sanitize); sanitiseCssValue (from @core/css-sanitize)
 
 server/publish/
@@ -180,9 +180,12 @@ See [docs/features/loops.md](loops.md) for sources, filters, and registration.
 | 1    | Module flagged `dynamic: true` in the registry | Node is a hole |
 | 2    | Node has a `dynamicBindings` entry whose source is request-dependent (`route.query.*`) | Node is a hole |
 | 2b   | A string prop contains a `{source.field}` token whose source is request-dependent | Node is a hole |
+| 2c   | Node has a `visibleWhen` condition reading a request-dependent source | Node is a hole |
 | 3    | `moduleId === 'base.loop'` AND the loop source declares `requestDependent: true` or `perVisitor: true` | Loop is a hole |
 | 3.5  | `moduleId === 'base.loop'` AND the loop source is static, but its body (transitively, including nested loops and referenced VC trees) contains any request-dependent node | Loop is promoted to a single hole; all body descendants are suppressed |
 | 4    | `moduleId === 'base.visual-component-ref'` whose VC definition tree contains any dynamic node | The outer VC ref node is a hole; inner VC node ids are never promoted |
+
+**Rule 2c** is a stronger dependency than Rule 2 and worth separating for that reason. A request-dependent prop binding changes what a node *says*; a request-dependent visibility condition changes whether the node is *there at all*. Baking it would freeze one visitor's answer into the static artefact for everyone.
 
 **Rule 3.5** prevents a broken publish artifact: if a static loop rendered its body's dynamic child as a per-node hole, the loop would emit N `<instatic-hole id="X">` elements with the same id — one per iteration — all resolving to the same context-less fragment. By promoting the loop itself to a single hole, the renderer emits one placeholder and the hole endpoint re-runs the entire loop at request time with full per-item context.
 

@@ -1178,8 +1178,9 @@ export const pgMigrations: Migration[] = [
     // Shares the `025_` prefix with the migration above deliberately — see
     // the note on the SQLite twin. The runner keys on the full id string, and
     // this id has already been recorded by live installations, so it must not
-    // be renumbered. Upstream carries it as `033_…` (#335): when that merges
-    // in, delete the 033 copy here too — the SQLite twin explains why.
+    // be renumbered. Upstream ships it as `031_…` (#335, v0.0.21), and that
+    // copy stays out of this branch — the SQLite twin explains why, and what
+    // an installation needs before moving to plain upstream.
     id: '025_data_tables_created_by_plugin',
     sql: `
       alter table data_tables add column created_by_plugin_id text;
@@ -1387,9 +1388,9 @@ export const pgMigrations: Migration[] = [
     // what makes the id itself safe to change: an installation that recorded
     // it under another number runs it again and inserts nothing.
     //
-    // `032` sits between two ids other open PRs claim: `031` (#495) and `033`
-    // (#335). Ids are only ever sorted, so the gaps cost nothing, and
-    // whichever lands first, nobody has to renumber.
+    // `032` because `031` is taken: upstream shipped #335's ALTER as
+    // `031_data_tables_created_by_plugin` in v0.0.21. This branch runs that
+    // ALTER as `025_…` instead (see there) and leaves upstream's `031` out.
     id: '032_backfill_avatar_usage_refs',
     sql: `
       insert into media_usage_refs (asset_id, ref_kind, ref_id, ref_path)

@@ -1322,14 +1322,17 @@ export const sqliteMigrations: Migration[] = [
     // (SQLite has no `add column if not exists`, per migration 010), so a new
     // id would re-run it and fail the boot.
     //
-    // The upstream PR (#335) carries this same ALTER as
-    // `033_data_tables_created_by_plugin`, because upstream's 025–030 were
-    // taken and open PRs claim 031–032. When it lands and main merges into
-    // this branch, DELETE the incoming 033 entry from both migration files
-    // and keep this one: with
-    // both present, every installation that recorded 025 runs the ALTER a
-    // second time and does not boot. `fork-stack-capabilities.test.ts` fails
-    // the build if that ever happens.
+    // Upstream merged #335 in v0.0.21 with this same ALTER as
+    // `031_data_tables_created_by_plugin`. That entry is deliberately LEFT
+    // OUT of this branch: with both present, every installation that
+    // recorded 025 runs the ALTER a second time and does not boot.
+    // `fork-stack-capabilities.test.ts` fails the build if that ever happens.
+    //
+    // Moving an installation off this branch onto plain upstream hits the
+    // same wall from the other side — upstream will try to run 031. Before
+    // that switch, record it as applied (the column already exists):
+    //   insert into schema_migrations (id, applied_at)
+    //   values ('031_data_tables_created_by_plugin', '<now, ISO 8601>');
     id: '025_data_tables_created_by_plugin',
     sql: `
       alter table data_tables add column created_by_plugin_id text;
@@ -1554,9 +1557,9 @@ export const sqliteMigrations: Migration[] = [
     // what makes the id itself safe to change: an installation that recorded
     // it under another number runs it again and inserts nothing.
     //
-    // `032` sits between two ids other open PRs claim: `031` (#495) and `033`
-    // (#335). Ids are only ever sorted, so the gaps cost nothing, and
-    // whichever lands first, nobody has to renumber.
+    // `032` because `031` is taken: upstream shipped #335's ALTER as
+    // `031_data_tables_created_by_plugin` in v0.0.21. This branch runs that
+    // ALTER as `025_…` instead (see there) and leaves upstream's `031` out.
     id: '032_backfill_avatar_usage_refs',
     sql: `
       insert into media_usage_refs (asset_id, ref_kind, ref_id, ref_path)

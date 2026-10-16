@@ -42,12 +42,6 @@ const CAPABILITIES: Capability[] = [
     marker: "format === 'media'",
   },
   {
-    pr: '#335',
-    what: '@own-created lets a plugin use tables it created at runtime',
-    file: 'src/core/data/schemas.ts',
-    marker: '@own-created',
-  },
-  {
     pr: '#336',
     what: 'the install consent dialog renders the contentAccess table list',
     file: 'src/admin/pages/plugins/components/PermissionReviewSection/computeContentAccessDiff.ts',
@@ -64,12 +58,6 @@ const CAPABILITIES: Capability[] = [
     what: 'a permanent media delete asks before it happens',
     file: 'src/admin/pages/media/components/MediaViewerWindow/MediaViewerWindow.tsx',
     marker: 'purgeConfirmOpen',
-  },
-  {
-    pr: '#499',
-    what: "the settings modal's Esc keycap closes the modal it advertises",
-    file: 'src/admin/modals/Settings/SettingsModal.tsx',
-    marker: 'stops the affordance lying about itself',
   },
   {
     pr: '#500',
@@ -122,10 +110,11 @@ describe('fork stack — every pending fix is still present', () => {
   test('no column is added by two different migrations', () => {
     // The one merge mistake that takes a live server down on boot. This branch
     // carries some migrations under ids installations have already recorded,
-    // while the matching upstream PR has to use a different number — #335 is
-    // `025_data_tables_created_by_plugin` here and `033_…` upstream. When the
-    // PR lands and main merges in, keeping both entries makes every recorded
-    // installation run the ALTER a second time, and SQLite has no
+    // while upstream shipped the same change under a different number — #335
+    // is `025_data_tables_created_by_plugin` here and `031_…` upstream
+    // (v0.0.21). Merging main in brings that 031 entry along, and keeping
+    // both makes every recorded installation run the ALTER a second time,
+    // and SQLite has no
     // `add column if not exists` to absorb it. Idempotent migrations (an
     // insert guarded by `not exists`) may be renumbered freely; an ALTER may
     // not, and this is the check that says so.

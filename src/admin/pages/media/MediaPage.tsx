@@ -26,6 +26,7 @@ import { MediaViewerWindow } from './components/MediaViewerWindow/MediaViewerWin
 import { UploadQueueWindow } from './components/UploadQueueWindow/UploadQueueWindow'
 import { BulkEditWindow } from './components/BulkEditWindow/BulkEditWindow'
 import { useMediaWorkspace } from './hooks/useMediaWorkspace'
+import { useUploadQueueWindow } from './hooks/useUploadQueueWindow'
 
 const MEDIA_PANEL_IDS: ReadonlySet<MediaSidebarPanelId> = new Set(['folders', 'storage'])
 
@@ -50,7 +51,6 @@ export function MediaPage() {
   useEffect(() => {
     writeWorkspaceLayout('media', { activeLeftPanel: activePanel })
   }, [activePanel])
-  const [uploadQueueOpen, setUploadQueueOpen] = useState(false)
 
   // Build the thin viewer-editor handle from the workspace. Same contract the
   // standalone MediaExplorerPanel-driven viewer uses, so the viewer doesn't
@@ -81,20 +81,9 @@ export function MediaPage() {
     workspace.selectedAssetId !== null && workspace.selectedAssetIds.size <= 1
   const bulkEditOpen = workspace.selectedAssetIds.size >= 2
 
-  // The upload queue IS genuinely stateful — it stays open after a transfer
-  // completes (the user dismisses it) and the toolbar button toggles it — so
-  // it can't be derived. Auto-opening on the async upload transition is the
-  // legitimate "sync UI to an external async system" use of an effect.
-  //
-  // Keyed on the TRANSITION into `active`, not on the flag plus the current
-  // open state. Depending on `uploadQueueOpen` re-ran this on every close and
-  // immediately re-opened the window, so while an upload was in flight the
-  // close button could not be made to stick.
-  /* eslint-disable react-hooks/set-state-in-effect */
-  useEffect(() => {
-    if (workspace.uploadQueue.active) setUploadQueueOpen(true)
-  }, [workspace.uploadQueue.active])
-  /* eslint-enable react-hooks/set-state-in-effect */
+  // Opens when an upload starts, and stays shut once the user closes it.
+  const { open: uploadQueueOpen, setOpen: setUploadQueueOpen } =
+    useUploadQueueWindow(workspace.uploadQueue.active)
 
   // Closing the queue window hides the transfer, it does not cancel it — so
   // the button that reopens it carries the progress. Without this, dismissing

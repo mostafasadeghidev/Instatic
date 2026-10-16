@@ -14,6 +14,7 @@
 import { useEffect, useEffectEvent, type DragEvent, type MouseEvent } from 'react'
 import type { CmsMediaAsset } from '@core/persistence/cmsMedia'
 import type { UseMediaWorkspaceResult } from './useMediaWorkspace'
+import { actionTargets } from '../utils/actionTargets'
 import { writeMediaAssetDragData } from '../utils/mediaDragDrop'
 
 /**
@@ -75,13 +76,10 @@ export function useMediaSelection({
   }
 
   /**
-   * Which assets a gesture acts on.
-   *
-   * The Finder rule: acting on an item inside the selection acts on the whole
-   * selection; acting on one outside it acts on that item alone. The context
-   * menu used to ignore the selection entirely, so right-clicking one of five
-   * selected files and choosing Delete trashed exactly one and left the other
-   * four selected.
+   * Which assets a gesture acts on — `actionTargets`, the Finder rule. The
+   * context menu used to ignore the selection entirely, so right-clicking one
+   * of five selected files and choosing Delete trashed exactly one and left
+   * the other four selected.
    *
    * Deliberately does NOT adopt the clicked asset into the selection the way
    * the site explorer does. Media's floating windows are derived from the
@@ -90,10 +88,7 @@ export function useMediaSelection({
    * underneath the menu.
    */
   function targetsFor(asset: CmsMediaAsset): string[] {
-    const selectedIds = Array.from(workspace.selectedAssetIds)
-    return workspace.selectedAssetIds.has(asset.id) && selectedIds.length > 0
-      ? selectedIds
-      : [asset.id]
+    return actionTargets(asset.id, workspace.selectedAssetIds)
   }
 
   function handleAssetDragStart(asset: CmsMediaAsset, event: DragEvent<HTMLButtonElement>) {

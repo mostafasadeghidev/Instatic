@@ -536,7 +536,8 @@ export function MediaCanvas({ workspace, selectionMode = 'standard' }: MediaCanv
               }
               // Purging is the one media action nothing can undo: it removes
               // the original and every generated size from the storage
-              // adapter, not just the row. `alwaysConfirm` because the
+              // adapter, not just the row — and from here it can reach a
+              // whole selection at once. `alwaysConfirm` because the
               // `confirmBeforeDelete` preference defaults off, and an operator
               // who turned it off was opting out of confirming a TRASH, which
               // is reversible.
@@ -549,10 +550,11 @@ export function MediaCanvas({ workspace, selectionMode = 'standard' }: MediaCanv
                   title: many
                     ? `Delete ${targets.length} files permanently?`
                     : `Delete "${filename}" permanently?`,
-                  description:
-                    'This removes the file and every generated size from disk. It cannot be undone.',
+                  description: many
+                    ? 'This removes every one of these files and all their generated sizes from disk. It cannot be undone.'
+                    : 'This removes the file and every generated size from disk. It cannot be undone.',
                   details: <UsageWarningNotice warning={warning} />,
-                  confirmLabel: 'Delete permanently',
+                  confirmLabel: many ? `Delete ${targets.length} files` : 'Delete permanently',
                   alwaysConfirm: true,
                   commit: () => {
                     for (const id of targets) void workspace.purgeAsset(id)

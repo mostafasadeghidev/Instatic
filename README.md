@@ -38,20 +38,30 @@ A self-hosted CMS where the visual editor, content engine, and publisher all liv
 > | Upstream PR | Change |
 > |---|---|
 > | [#334](https://github.com/CoreBunch/Instatic/pull/334) | Media bindings resolve asset ids to served URLs; outlets can bind any rich field |
-> | [#335](https://github.com/CoreBunch/Instatic/pull/335) | `@own-created` contentAccess marker — plugins can use tables they created at runtime |
 > | [#336](https://github.com/CoreBunch/Instatic/pull/336) | Install consent dialog renders the per-table `contentAccess` allowlist |
 > | [#357](https://github.com/CoreBunch/Instatic/pull/357) | A node can be shown only on the rows where a field is filled in (`visibleWhen`) |
 > | [#497](https://github.com/CoreBunch/Instatic/pull/497) | Permanently deleting a media asset asks first, on both paths that offer it |
-> | [#499](https://github.com/CoreBunch/Instatic/pull/499) | The settings modal's `Esc` keycap closes the modal it advertises |
 > | [#500](https://github.com/CoreBunch/Instatic/pull/500) | Media's multi-selection reaches the context menu, bulk purge, and Escape |
-> | [#501](https://github.com/CoreBunch/Instatic/pull/501) | Select every visible media asset with Ctrl/Cmd+A, and minimize a floating window instead of being stuck with it |
 > | [#505](https://github.com/CoreBunch/Instatic/pull/505) | Media records what depends on an asset, so deleting an avatar warns first |
 > | [#507](https://github.com/CoreBunch/Instatic/pull/507) | The permanent-delete confirmation names every page, on every branch, that still uses a file |
+> | [#658](https://github.com/CoreBunch/Instatic/pull/658) | Select every visible media asset with Ctrl/Cmd+A or a toolbar button |
+> | [#659](https://github.com/CoreBunch/Instatic/pull/659) | The upload queue window stays closed when closed mid-upload |
+> | [#660](https://github.com/CoreBunch/Instatic/pull/660) | A floating window can be minimized to its title bar instead of dismissed |
+>
+> Carried here but not proposed upstream — left over from #501, which review asked to split, and kept because live installs run them:
+>
+> | Change | Where |
+> |---|---|
+> | The Uploads button shows progress (`Uploads 3/5`) while the queue window is closed | `MediaPage.tsx` |
+> | The upload queue opens bottom-left by default, like a browser's download shelf | `UploadQueueWindow.tsx` |
+> | Dialog body copy is sized to the admin's scale instead of the browser's 16px default | `Dialog.module.css` |
 >
 > Landed upstream, so no longer carried as a fork change:
 >
 > | Upstream PR | Change |
 > |---|---|
+> | [#335](https://github.com/CoreBunch/Instatic/pull/335) | `@own-created` contentAccess marker — plugins can use tables they created at runtime — merged, shipped in v0.0.21 |
+> | [#499](https://github.com/CoreBunch/Instatic/pull/499) | The settings modal's `Esc` keycap closes the modal it advertises — merged, shipped in v0.0.21 |
 > | [#359](https://github.com/CoreBunch/Instatic/pull/359) | A plugin upgrade no longer 404s the assets every published page links — merged, shipped in v0.0.20 |
 > | [#498](https://github.com/CoreBunch/Instatic/pull/498) | Re-uploading a plugin at the same version is a reinstall, not a first install — merged, shipped in v0.0.20 |
 > | [#354](https://github.com/CoreBunch/Instatic/pull/354) | Published pages can load cross-origin video/audio (`media-src` matches `img-src`) — merged |
@@ -72,6 +82,8 @@ A self-hosted CMS where the visual editor, content engine, and publisher all liv
 > ```
 >
 > The `-b` matters: the fork's default branch is `main`, identical to upstream, so a plain `clone` — or a fork of this fork — starts from clean upstream code and none of the changes above. Once the PRs merge upstream, prefer upstream releases over this branch.
+>
+> **Before moving an installation from this branch to plain upstream:** this branch ran #335's ALTER as migration `025_data_tables_created_by_plugin`, and upstream ships the same ALTER as `031_…`, which would fail on the existing column. Record it as applied first — `insert into schema_migrations (id, applied_at) values ('031_data_tables_created_by_plugin', '<now, ISO 8601>');` — then switch.
 
 A modern website usually means assembling a stack: a headless CMS, a framework, a host, a form service, an analytics vendor, an image CDN — each with its own bill, dashboard, and 2 a.m. outage. Instatic is the opposite bet. One Bun server holds the whole thing — the canvas editor, the content engine, media, auth, forms, plugins, and the publisher — and you run it wherever you like, backed by SQLite or Postgres.
 

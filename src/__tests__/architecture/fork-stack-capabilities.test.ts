@@ -66,7 +66,13 @@ const CAPABILITIES: Capability[] = [
     marker: 'useTopmostEscape',
   },
   {
-    pr: '#501',
+    pr: '#658',
+    what: 'Ctrl/Cmd+A selects every visible media asset',
+    file: 'src/admin/pages/media/components/MediaCanvas/MediaCanvas.tsx',
+    marker: 'toggleSelectAllVisible',
+  },
+  {
+    pr: '#660',
     what: 'a floating window can be minimized instead of dismissed',
     file: 'src/admin/shared/FloatingWindow/FloatingWindow.tsx',
     marker: 'minimizable',

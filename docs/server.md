@@ -58,6 +58,13 @@ Boot is sequential and fail-fast. If migrations fail, the process exits. If a pl
 
 ---
 
+The HTTP server accepts request bodies up to 1 GiB, matching Site Import's
+archive input limit. CMS archive imports stream media entries to disk; their
+manifest has a separate 256 MiB limit. JSON bodies retain a 128 MiB default
+limit in `readValidatedBody`, enforced while streaming even without a
+`Content-Length` header; endpoints can set a smaller limit. Oversized JSON
+requests receive HTTP 413.
+
 ## Routing
 
 `server/router.ts` exposes one function:
@@ -545,7 +552,7 @@ Server-side publishing helpers live in `server/publish/`:
 | `renderCache.ts`                  | Layer B. Bounded LRU keyed by `(urlPath, canonicalQuery)`, entries versioned. Single-flight on cache miss. `bumpPublishVersion()` invalidates lazily; version captured at render start so mid-flight publishes discard without caching stale HTML. |
 | `holeRuntime.ts`                  | Layer C client-side runtime (~1.1 KB). Exports `runInstaticHoleRuntime` (TS source) and `HOLE_RUNTIME_JS` (IIFE-serialized for browser delivery). |
 | `publishSite.ts`                  | Full-site publish orchestrator (`publishDraftSite`): phase-1 builds, the short `persistSitePublish` transaction, Layer A bake + slot swap, Layer B bump. |
-| `publishRow.ts`                   | Per-row publish orchestrator (`publishDataRow`) + `removeDataRowArtefact`: persist via the data repository, in-place artefact update, Layer B bump. |
+| `publishRow.ts`                   | Per-row publish orchestrator (`publishDataRow`) + `removeDataRowArtefact`: page rows use the site pipeline with published shared resources and just the selected draft; other rows use an in-place artefact update and Layer B bump. |
 | `publicRenderer.ts`               | `renderPublishedSnapshot`, `renderPublishedDataRowTemplate` — snapshot-aware wrappers around `publishPage`. |
 | `publishedHtmlPipeline.ts`        | Plugin frontend-asset injection + `publish.html` filter chain. Runs at publish time for every baked page (complete doc or hole shell); also runs in the Layer B factory for query-string / live renders (cached). |
 | `siteCssBundle.ts`                | Per-site reset / framework / style CSS bundles (hashed filenames).  |

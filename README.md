@@ -33,7 +33,7 @@ A self-hosted CMS where the visual editor, content engine, and publisher all liv
 <br>
 
 > [!NOTE]
-> **This is `stack/all-fixes` on the [mostafasadeghidev/Instatic](https://github.com/mostafasadeghidev/Instatic) fork** — upstream [CoreBunch/Instatic](https://github.com/CoreBunch/Instatic) `main` plus ten changes that have been submitted upstream and are awaiting review:
+> **This is `stack/all-fixes` on the [mostafasadeghidev/Instatic](https://github.com/mostafasadeghidev/Instatic) fork** — upstream [CoreBunch/Instatic](https://github.com/CoreBunch/Instatic) `main` plus nine changes that have been submitted upstream and are awaiting review:
 >
 > | Upstream PR | Change |
 > |---|---|
@@ -45,7 +45,6 @@ A self-hosted CMS where the visual editor, content engine, and publisher all liv
 > | [#505](https://github.com/CoreBunch/Instatic/pull/505) | Media records what depends on an asset, so deleting an avatar warns first |
 > | [#507](https://github.com/CoreBunch/Instatic/pull/507) | The permanent-delete confirmation names every page, on every branch, that still uses a file |
 > | [#658](https://github.com/CoreBunch/Instatic/pull/658) | Select every visible media asset with Ctrl/Cmd+A or a toolbar button |
-> | [#659](https://github.com/CoreBunch/Instatic/pull/659) | The upload queue window stays closed when closed mid-upload |
 > | [#660](https://github.com/CoreBunch/Instatic/pull/660) | A floating window can be minimized to its title bar instead of dismissed |
 >
 > Carried here but not proposed upstream — left over from #501, which review asked to split, and kept because live installs run them:
@@ -60,6 +59,7 @@ A self-hosted CMS where the visual editor, content engine, and publisher all liv
 >
 > | Upstream PR | Change |
 > |---|---|
+> | [#659](https://github.com/CoreBunch/Instatic/pull/659) | The upload queue window stays closed when closed mid-upload — merged |
 > | [#335](https://github.com/CoreBunch/Instatic/pull/335) | `@own-created` contentAccess marker — plugins can use tables they created at runtime — merged, shipped in v0.0.21 |
 > | [#499](https://github.com/CoreBunch/Instatic/pull/499) | The settings modal's `Esc` keycap closes the modal it advertises — merged, shipped in v0.0.21 |
 > | [#359](https://github.com/CoreBunch/Instatic/pull/359) | A plugin upgrade no longer 404s the assets every published page links — merged, shipped in v0.0.20 |

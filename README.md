@@ -59,7 +59,7 @@ A self-hosted CMS where the visual editor, content engine, and publisher all liv
 >
 > | Upstream PR | Change |
 > |---|---|
-> | [#659](https://github.com/CoreBunch/Instatic/pull/659) | The upload queue window stays closed when closed mid-upload — merged |
+> | [#659](https://github.com/CoreBunch/Instatic/pull/659) | The upload queue window stays closed when closed mid-upload — merged, shipped in v0.0.22 |
 > | [#335](https://github.com/CoreBunch/Instatic/pull/335) | `@own-created` contentAccess marker — plugins can use tables they created at runtime — merged, shipped in v0.0.21 |
 > | [#499](https://github.com/CoreBunch/Instatic/pull/499) | The settings modal's `Esc` keycap closes the modal it advertises — merged, shipped in v0.0.21 |
 > | [#359](https://github.com/CoreBunch/Instatic/pull/359) | A plugin upgrade no longer 404s the assets every published page links — merged, shipped in v0.0.20 |

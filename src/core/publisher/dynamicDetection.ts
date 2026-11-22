@@ -18,6 +18,8 @@
  *      (currently: `route.query.*`).
  *   2b. A string prop value contains a `{source.field}` token whose source is
  *      request-dependent.
+ *   2c. A show-if condition tests a query parameter (`showIf` with
+ *      `source: 'query'`, see `@core/templates/showIf`).
  *   3. `moduleId === 'base.loop'` AND the loop source has `requestDependent: true`
  *      or `perVisitor: true`.
  *   4. `moduleId === 'base.visual-component-ref'` whose VC definition tree
@@ -44,6 +46,7 @@ import { selectVisualComponentById } from '@core/page-tree'
 import { loopSourceRegistry } from '@core/loops/registry'
 import { containsTokens, parseTokenString } from '@core/templates/tokenInterpolation'
 import { SHOW_WHEN_PROP_KEY } from '@core/members'
+import { readShowIf } from '@core/templates'
 
 /** How a classification pass treats the visitor. */
 interface DetectionOptions {
@@ -177,6 +180,19 @@ function checkShowWhen(node: AnalysisNode, options: DetectionOptions): string | 
 }
 
 /**
+ * Rule 2c: a show-if condition on a query parameter makes the node's presence
+ * depend on the request URL, exactly like a `route.query.*` binding. A
+ * condition on a loop item or entry field is known at publish time. An
+ * unreadable condition hides the node everywhere, so it stays static.
+ */
+function checkShowIf(node: AnalysisNode, options: DetectionOptions): string | null {
+  const rule = readShowIf(node.props)
+  if (rule === null || rule === 'never' || rule.source !== 'query') return null
+  if (!isBindingSourceRequestDependent('route', `query.${rule.name}`, options)) return null
+  return `node "${node.id}": shown only when the query parameter "${rule.name}" passes a test`
+}
+
+/**
  * Rule 3: `base.loop` whose source is request-dependent or per-visitor.
  * Returns reason or null. An unregistered/empty sourceId stays static.
  * `perVisitor` implies request-dependent (it also renders at request time —
@@ -205,6 +221,7 @@ function checkLoopSource(node: AnalysisNode): string | null {
  *   1. module flagged `dynamic: true`
  *   2. structured `dynamicBindings` with a request-dependent source
  *   2b. inline `{source.field}` request-dependent token in a string prop
+ *   2c. show-if condition on a query parameter
  *   3. `base.loop` with a request-dependent / per-visitor source
  *   4. `base.visual-component-ref` whose VC definition tree contains any
  *      request-dependent node (recursive, cycle-guarded via `seenVcs`)
@@ -242,7 +259,11 @@ function classifyNode(
   const tokenReason = checkInlineTokens(node, options)
   if (tokenReason) return { dynamic: true, reason: tokenReason }
 
-  // Rule 2c: a visibility condition reading a request-dependent source.
+  // Rule 2c: a show-if condition on a query parameter.
+  const showIfReason = checkShowIf(node, options)
+  if (showIfReason) return { dynamic: true, reason: showIfReason }
+
+  // Rule 2d: a visibility condition reading a request-dependent source.
   // Whether the node renders AT ALL now depends on that source, which is a
   // stronger dependency than any prop binding — baking it would freeze one
   // request's answer into the static artefact for every visitor.

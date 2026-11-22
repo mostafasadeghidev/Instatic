@@ -80,7 +80,7 @@ const CAPABILITIES: Capability[] = [
   {
     pr: '#505',
     what: 'media records what depends on an asset, so a delete can warn',
-    file: 'server/repositories/media.ts',
+    file: 'server/repositories/mediaUsageRefs.ts',
     marker: 'setMediaUsageRef',
   },
   {

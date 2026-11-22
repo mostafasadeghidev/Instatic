@@ -48,12 +48,6 @@ const CAPABILITIES: Capability[] = [
     marker: 'computeContentAccessDiff',
   },
   {
-    pr: '#357',
-    what: 'a node can be shown only on the rows where a field is filled in',
-    file: 'src/core/page-tree/baseNode.ts',
-    marker: 'visibleWhen',
-  },
-  {
     pr: '#497',
     what: 'a permanent media delete asks before it happens',
     file: 'src/admin/pages/media/components/MediaViewerWindow/MediaViewerWindow.tsx',

@@ -33,13 +33,12 @@ A self-hosted CMS where the visual editor, content engine, and publisher all liv
 <br>
 
 > [!NOTE]
-> **This is `stack/all-fixes` on the [mostafasadeghidev/Instatic](https://github.com/mostafasadeghidev/Instatic) fork** — upstream [CoreBunch/Instatic](https://github.com/CoreBunch/Instatic) `main` plus nine changes that have been submitted upstream and are awaiting review:
+> **This is `stack/all-fixes` on the [mostafasadeghidev/Instatic](https://github.com/mostafasadeghidev/Instatic) fork** — upstream [CoreBunch/Instatic](https://github.com/CoreBunch/Instatic) `main` plus eight changes that have been submitted upstream and are awaiting review:
 >
 > | Upstream PR | Change |
 > |---|---|
 > | [#334](https://github.com/CoreBunch/Instatic/pull/334) | Media bindings resolve asset ids to served URLs; outlets can bind any rich field |
 > | [#336](https://github.com/CoreBunch/Instatic/pull/336) | Install consent dialog renders the per-table `contentAccess` allowlist |
-> | [#357](https://github.com/CoreBunch/Instatic/pull/357) | A node can be shown only on the rows where a field is filled in (`visibleWhen`) |
 > | [#497](https://github.com/CoreBunch/Instatic/pull/497) | Permanently deleting a media asset asks first, on both paths that offer it |
 > | [#500](https://github.com/CoreBunch/Instatic/pull/500) | Media's multi-selection reaches the context menu, bulk purge, and Escape |
 > | [#505](https://github.com/CoreBunch/Instatic/pull/505) | Media records what depends on an asset, so deleting an avatar warns first |
@@ -59,6 +58,7 @@ A self-hosted CMS where the visual editor, content engine, and publisher all liv
 >
 > | Upstream PR | Change |
 > |---|---|
+> | [#357](https://github.com/CoreBunch/Instatic/pull/357) | Show a node only on the rows where a field is filled in — closed, superseded by upstream's `showIf` ([#765](https://github.com/CoreBunch/Instatic/pull/765)), which also covers query parameters and value comparisons |
 > | [#659](https://github.com/CoreBunch/Instatic/pull/659) | The upload queue window stays closed when closed mid-upload — merged, shipped in v0.0.22 |
 > | [#335](https://github.com/CoreBunch/Instatic/pull/335) | `@own-created` contentAccess marker — plugins can use tables they created at runtime — merged, shipped in v0.0.21 |
 > | [#499](https://github.com/CoreBunch/Instatic/pull/499) | The settings modal's `Esc` keycap closes the modal it advertises — merged, shipped in v0.0.21 |

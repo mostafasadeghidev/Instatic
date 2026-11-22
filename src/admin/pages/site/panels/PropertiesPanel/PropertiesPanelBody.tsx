@@ -33,7 +33,6 @@ import { readShowIf } from '@core/templates'
 import { ShowWhenControl } from './ShowWhenControl'
 import { ShowIfControl } from './ShowIfControl'
 import { HtmlAttributesPanel } from './HtmlAttributesPanel'
-import { VisibilityConditionPanel } from './VisibilityConditionPanel'
 import { ComponentRefView } from './ComponentRefView'
 import { ComponentParamsOverview } from './ComponentParamsOverview'
 import { ConvertToComponentButton } from './ConvertToComponentButton'
@@ -227,11 +226,6 @@ export function PropertiesPanelBody(props: PropertiesPanelBodyProps): React.Reac
           <ShowIfControl
             nodeId={selectedNode.id}
             props={selectedNode.props}
-            readOnly={!permissions.canEditStructure}
-          />
-          <VisibilityConditionPanel
-            nodeId={selectedNode.id}
-            visibleWhen={selectedNode.visibleWhen}
             readOnly={!permissions.canEditStructure}
           />
         </>

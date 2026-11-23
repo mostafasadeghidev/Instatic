@@ -9,15 +9,17 @@
  * delete or swallowing one.
  *
  * Three surfaces offer that delete — the viewer window, the grid's context
- * menu, and the bulk window — and each of them has its own dialog. A test per
- * surface is the only thing that catches one being left behind, which is
- * exactly what happened to the minimize button.
+ * menu, and the bulk window. The first two share one confirmation
+ * (`useConfirmMediaPurge`); the bulk window has its own. A test per surface is
+ * the only thing that catches one being left behind, which is exactly what
+ * happened to the minimize button.
  */
 
 import { afterEach, describe, expect, it } from 'bun:test'
 import { cleanup, fireEvent, render, screen } from '@testing-library/react'
 import { MediaViewerWindow } from '@admin/pages/media/components/MediaViewerWindow/MediaViewerWindow'
 import { BulkEditWindow } from '@admin/pages/media/components/BulkEditWindow/BulkEditWindow'
+import { ConfirmDeleteProvider } from '@admin/shared/dialogs/ConfirmDeleteDialog'
 import { AdminSessionContext } from '@admin/sessionContext'
 import type { CmsMediaUsageRef } from '@core/persistence/cmsMedia'
 
@@ -81,11 +83,13 @@ function renderViewer(lookupUsage: (ids: string[]) => Promise<CmsMediaUsageRef[]
   }
   render(
     <AdminSessionContext value={session as never}>
-      <MediaViewerWindow
-        editor={editor as unknown as Parameters<typeof MediaViewerWindow>[0]['editor']}
-        open
-        onClose={() => {}}
-      />
+      <ConfirmDeleteProvider>
+        <MediaViewerWindow
+          editor={editor as unknown as Parameters<typeof MediaViewerWindow>[0]['editor']}
+          open
+          onClose={() => {}}
+        />
+      </ConfirmDeleteProvider>
     </AdminSessionContext>,
   )
   return { asked }

@@ -48,12 +48,6 @@ const CAPABILITIES: Capability[] = [
     marker: 'computeContentAccessDiff',
   },
   {
-    pr: '#497',
-    what: 'a permanent media delete asks before it happens',
-    file: 'src/admin/pages/media/components/MediaViewerWindow/MediaViewerWindow.tsx',
-    marker: 'purgeConfirmOpen',
-  },
-  {
     pr: '#500',
     what: 'only the topmost floating surface answers Escape',
     file: 'src/admin/shared/FloatingWindow/useTopmostEscape.ts',
